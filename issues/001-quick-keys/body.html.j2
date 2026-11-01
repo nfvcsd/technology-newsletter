@@ -1,0 +1,428 @@
+{% extends "base.html.j2" %}
+{% import "macros.html.j2" as ui %}
+{% set sheet = cheatsheets["macos-shortcuts"] %}
+{% set sheet_png = "cheatsheets/" ~ sheet.slug ~ ".png" %}
+{% set sheet_html = "cheatsheets/" ~ sheet.slug ~ ".html" %}
+
+{% block title %}{{ issue.title }} · {{ site.name }} #{{ issue.number }}{% endblock %}
+
+{% block masthead_meta %}
+<span class="masthead__issue">Issue {{ issue.number }} · {{ issue.published.strftime("%B %-d, %Y") }}</span>
+{% endblock %}
+
+{% block head %}
+<style>
+  /* ---- Demo building blocks: tiny Mac windows and a mouse pointer ---- */
+  .windows { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .windows--single { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; }
+  .win {
+    background: var(--nfv-white);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(5, 28, 44, 0.15), 0 6px 18px rgba(5, 28, 44, 0.1);
+  }
+  .win__bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--nfv-cool-gray-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--nfv-cool-gray-9);
+  }
+  .win__bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--nfv-cool-gray-4); }
+  .win__bar span { margin-left: 8px; }
+  .win__body {
+    position: relative;
+    z-index: 0; /* new stacking context so highlights sit behind the text */
+    margin: 0;
+    padding: 18px 18px 22px;
+    min-height: 6.2em;
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+
+  .pointer { position: absolute; width: 1.15em; height: 1.15em; pointer-events: none; }
+  .caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.15em;
+    margin-left: 1px;
+    vertical-align: -0.2em;
+    background: var(--nfv-black);
+    animation: blink 1s steps(1) infinite;
+  }
+
+  .demo-keys { display: flex; justify-content: center; gap: 14px; margin-top: 24px; font-size: 1.5rem; }
+  .demo-keys .key { min-width: 2.2em; height: 2.2em; padding: 0 0.5em; }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge--navy { background: var(--nfv-navy); color: var(--nfv-white); }
+  .badge--blue { background: var(--nfv-light-blue); color: var(--nfv-midnight); }
+  .badge--outline { background: var(--nfv-white); color: var(--nfv-navy); box-shadow: inset 0 0 0 2px var(--nfv-navy); }
+
+  /* ---- Demo 1: copy and paste (10 s loop) ---- */
+  .copy-demo { --dur: 10s; }
+  .copy-demo .sel { position: relative; }
+  .copy-demo .sel::before {
+    content: "";
+    position: absolute;
+    inset: -0.05em -0.12em;
+    z-index: -1;
+    border-radius: 3px;
+    background: rgba(106, 178, 226, 0.5);
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: select var(--dur) infinite;
+  }
+  .copy-demo .pointer--select { top: 0.75em; left: 0; animation: drag var(--dur) infinite; }
+  .copy-demo .paste-spot { position: relative; }
+  .copy-demo .pointer--click { top: 0.75em; left: -0.2em; opacity: 0; animation: click var(--dur) infinite; }
+  .copy-demo .paste {
+    display: inline-block;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: bottom;
+    animation: paste var(--dur) infinite;
+  }
+  .copy-demo .copied {
+    position: absolute;
+    left: 18px;
+    bottom: 12px;
+    opacity: 0;
+    transform: scale(0.8);
+    transform-origin: left center;
+    animation: copied var(--dur) infinite;
+  }
+  .copy-demo .press-cmd .key { animation: press-cmd-copy var(--dur) infinite; }
+  .copy-demo .press-c .key { animation: press-c var(--dur) infinite; }
+  .copy-demo .press-v .key { animation: press-v var(--dur) infinite; }
+  .copy-demo .steps li:nth-child(1) { animation: copy-step-1 var(--dur) infinite; }
+  .copy-demo .steps li:nth-child(2) { animation: copy-step-2 var(--dur) infinite; }
+  .copy-demo .steps li:nth-child(3) { animation: copy-step-3 var(--dur) infinite; }
+
+  @keyframes select { 0%, 9% { transform: scaleX(0); opacity: 1; } 22%, 88% { transform: scaleX(1); opacity: 1; } 94%, 100% { transform: scaleX(1); opacity: 0; } }
+  @keyframes drag { 0%, 5% { left: -40%; opacity: 0; } 9% { left: 0; opacity: 1; } 22%, 46% { left: 100%; opacity: 1; } 50%, 100% { left: 100%; opacity: 0; } }
+  @keyframes click { 0%, 50% { opacity: 0; transform: translate(2.5em, 1.5em); } 57% { opacity: 1; transform: translate(0, 0); } 59% { transform: scale(0.8); } 61% { transform: scale(1); } 88% { opacity: 1; } 92%, 100% { opacity: 0; } }
+  @keyframes paste { 0%, 67% { max-width: 0; } 68%, 94% { max-width: 12em; } 95%, 100% { max-width: 0; } }
+  @keyframes copied { 0%, 34% { opacity: 0; transform: scale(0.8); } 37%, 50% { opacity: 1; transform: scale(1); } 54%, 100% { opacity: 0; transform: scale(1); } }
+  @keyframes press-cmd-copy { 0%, 29%, 43%, 61%, 75%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 30%, 42%, 62%, 74% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes press-c { 0%, 33%, 39%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 34%, 38% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes press-v { 0%, 65%, 71%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 66%, 70% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes copy-step-1 { 0%, 7%, 27%, 100% { background: var(--nfv-white); } 9%, 25% { background: var(--nfv-light-blue); } }
+  @keyframes copy-step-2 { 0%, 27%, 50%, 100% { background: var(--nfv-white); } 29%, 48% { background: var(--nfv-light-blue); } }
+  @keyframes copy-step-3 { 0%, 53%, 94%, 100% { background: var(--nfv-white); } 55%, 92% { background: var(--nfv-light-blue); } }
+
+  /* ---- Demo 2: undo (8 s loop) ---- */
+  .undo-demo { --dur: 8s; }
+  .undo-demo .undo-wrap { position: relative; display: inline-block; }
+  .undo-demo .victim { display: inline-block; animation: erase var(--dur) infinite; }
+  .undo-demo .undo-wrap .caret { position: absolute; top: 0.2em; left: 100%; animation: blink 1s steps(1) infinite, caret-back var(--dur) infinite; }
+  .undo-demo .messages { display: grid; margin-top: 14px; }
+  .undo-demo .messages > * { grid-area: 1 / 1; justify-self: start; opacity: 0; }
+  .undo-demo .oops { animation: oops var(--dur) infinite; }
+  .undo-demo .back { animation: back var(--dur) infinite; }
+  .undo-demo .press-cmd .key { animation: press-cmd-undo var(--dur) infinite; }
+  .undo-demo .press-z .key { animation: press-z var(--dur) infinite; }
+  .undo-demo .steps li:nth-child(1) { animation: undo-step-1 var(--dur) infinite; }
+  .undo-demo .steps li:nth-child(2) { animation: undo-step-2 var(--dur) infinite; }
+  .undo-demo .steps li:nth-child(3) { animation: undo-step-3 var(--dur) infinite; }
+
+  @keyframes erase {
+    0%, 12% { clip-path: inset(0 0 0 0); animation-timing-function: steps(10, end); }
+    34%, 55% { clip-path: inset(0 100% 0 0); }
+    56%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  @keyframes caret-back {
+    0%, 12% { left: 100%; animation-timing-function: steps(10, end); }
+    34%, 55% { left: 0; }
+    56%, 100% { left: 100%; }
+  }
+  @keyframes oops { 0%, 35% { opacity: 0; } 37%, 54% { opacity: 1; } 56%, 100% { opacity: 0; } }
+  @keyframes back { 0%, 56% { opacity: 0; } 58%, 92% { opacity: 1; } 95%, 100% { opacity: 0; } }
+  @keyframes press-cmd-undo { 0%, 45%, 59%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 46%, 58% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes press-z { 0%, 50%, 56%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 51%, 55% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes undo-step-1 { 0%, 11%, 45%, 100% { background: var(--nfv-white); } 13%, 43% { background: var(--nfv-light-blue); } }
+  @keyframes undo-step-2 { 0%, 44%, 59%, 100% { background: var(--nfv-white); } 46%, 57% { background: var(--nfv-light-blue); } }
+  @keyframes undo-step-3 { 0%, 57%, 94%, 100% { background: var(--nfv-white); } 59%, 92% { background: var(--nfv-light-blue); } }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* ---- Pause button and reduced motion ---- */
+  .motion-paused .demo *,
+  .motion-paused .demo *::before { animation-play-state: paused !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .demo *, .demo *::before { animation: none !important; }
+    .demo__toolbar, .pointer, .copy-demo .copied, .undo-demo .oops { display: none; }
+    .copy-demo .sel::before { transform: scaleX(1); }
+    .copy-demo .paste { max-width: none; }
+    .undo-demo .back { opacity: 1; }
+  }
+
+  @media (max-width: 600px) {
+    .windows { grid-template-columns: 1fr; }
+    .demo-keys { font-size: 1.25rem; }
+  }
+</style>
+{% endblock %}
+
+{% macro pointer(class_) -%}
+<svg class="pointer {{ class_ }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17l4.6-4.3 3 6.6 3-1.4-3-6.4h6.3z" fill="#231F20" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/></svg>
+{%- endmacro %}
+
+{% macro window(title) -%}
+<div class="win">
+  <div class="win__bar"><i></i><i></i><i></i><span>{{ title }}</span></div>
+  <p class="win__body">{{ caller() }}</p>
+</div>
+{%- endmacro %}
+
+{% macro pause_button() -%}
+<div class="demo__toolbar"><button type="button" class="motion-toggle" aria-pressed="false">Pause animations</button></div>
+{%- endmacro %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ Hero #}
+<section class="block" style="padding-top: 24px;">
+  <span class="kicker">Issue {{ issue.number }} · This week's skill</span>
+  {{ ui.headline("Copy, paste, done.", "The shortcuts you'll use every day.", tag="h1", class_="display") }}
+  <p class="lede">
+    Welcome to {{ site.name }}, one small tech skill each week. We're starting with the five
+    keyboard shortcuts that do the most work: copy, cut, paste, undo, and select all.
+  </p>
+  <hr class="rule">
+</section>
+
+{# ---------------------------------------------------- Meet the Command key #}
+<section class="block">
+  {{ ui.headline("Meet Command.", "Your shortcut key.") }}
+  <p>
+    On a Mac, most shortcuts start with the Command key {{ ui.combo("cmd") }}. You'll find one on
+    each side of the space bar. Hold it down, tap a letter, then let go of both.
+  </p>
+  <p>
+    Used Windows or a Chromebook before? Command does the job that Ctrl does there.
+  </p>
+
+  <figure class="demo copy-demo">
+    <div class="demo__panel">
+      {{ pause_button() }}
+      <div class="windows" aria-hidden="true">
+        {% call window("Notes") %}Field trip forms are <span class="sel">due Friday{{ pointer("pointer--select") }}</span>.<span class="badge badge--navy copied">Copied!</span>{% endcall %}
+        {% call window("Mail") %}Quick reminder: forms are <span class="paste-spot"><span class="paste">due Friday</span>{{ pointer("pointer--click") }}</span><span class="caret"></span>{% endcall %}
+      </div>
+      <div class="demo-keys" aria-hidden="true">
+        <span class="press-cmd">{{ ui.keycap(parse_combo("cmd")[0], show_name=true) }}</span>
+        <span class="press-c">{{ ui.keycap(parse_combo("C")[0]) }}</span>
+        <span class="press-v">{{ ui.keycap(parse_combo("V")[0]) }}</span>
+      </div>
+      <ol class="steps">
+        <li><span>Drag to select the text</span></li>
+        <li><span>Press {{ ui.combo("cmd C") }} to copy</span></li>
+        <li><span>Click where it goes, press {{ ui.combo("cmd V") }}</span></li>
+      </ol>
+    </div>
+    <figcaption>
+      Copying leaves the original where it was. You can paste the same thing as many times as you
+      like, until you copy something new.
+    </figcaption>
+  </figure>
+</section>
+
+{# ------------------------------------------------------- The essential five #}
+<section class="block">
+  {{ ui.headline("The essential five.", "Learn these first.") }}
+  <ul class="cards">
+    <li class="card">
+      {{ ui.combos("cmd C") }}
+      <h3>Copy</h3>
+      <p>Makes a copy of what you selected. The original stays put.</p>
+    </li>
+    <li class="card">
+      {{ ui.combos("cmd X") }}
+      <h3>Cut</h3>
+      <p>Takes out what you selected so you can paste it somewhere else. Handy for moving a sentence or paragraph.</p>
+    </li>
+    <li class="card">
+      {{ ui.combos("cmd V") }}
+      <h3>Paste</h3>
+      <p>Puts in whatever you last copied or cut, right where your cursor is.</p>
+    </li>
+    <li class="card">
+      {{ ui.combos("cmd Z") }}
+      <h3>Undo</h3>
+      <p>Your oops button. Press it again to keep stepping back. Changed your mind? {{ ui.combo("shift cmd Z") }} redoes it.</p>
+    </li>
+    <li class="card">
+      {{ ui.combos("cmd A") }}
+      <h3>Select all</h3>
+      <p>Selects everything in a document, text box, or Finder window. Great right before a copy.</p>
+    </li>
+    <li class="card card--bonus">
+      {{ ui.combos("opt shift cmd V") }}
+      <h3>Bonus: Paste and match style</h3>
+      <p>Pastes plain text that matches your document, without the fonts and colors from the website you copied it from. In Google Docs, use {{ ui.combo("shift cmd V") }}.</p>
+    </li>
+  </ul>
+</section>
+
+{# ---------------------------------------------------------------- Undo demo #}
+<section class="block">
+  {{ ui.headline("Oops?", "Undo has your back.") }}
+  <p>
+    Deleted the wrong thing? Don't retype it. Press {{ ui.combo("cmd Z") }} and it comes right back.
+    Undo works in almost every app, including Google Docs, Pages, Mail, and even Finder when you
+    drag a file to the wrong folder.
+  </p>
+
+  <figure class="demo undo-demo">
+    <div class="demo__panel">
+      {{ pause_button() }}
+      <div class="windows windows--single" aria-hidden="true">
+        <div class="win">
+          <div class="win__bar"><i></i><i></i><i></i><span>Class newsletter</span></div>
+          <div class="win__body">
+            Our class read <span class="undo-wrap"><span class="victim">42 books this month!</span><span class="caret"></span></span>
+            <div class="messages">
+              <span class="badge badge--outline oops">Oops! Deleted by accident.</span>
+              <span class="badge badge--blue back">Undo brought it back.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-keys" aria-hidden="true">
+        <span class="press-cmd">{{ ui.keycap(parse_combo("cmd")[0], show_name=true) }}</span>
+        <span class="press-z">{{ ui.keycap(parse_combo("Z")[0]) }}</span>
+      </div>
+      <ol class="steps">
+        <li><span>Text gets deleted by mistake</span></li>
+        <li><span>Press {{ ui.combo("cmd Z") }}</span></li>
+        <li><span>It's back, just like before</span></li>
+      </ol>
+    </div>
+  </figure>
+
+  <aside class="callout">
+    <span class="kicker">New on your Mac · macOS Tahoe 26 and later</span>
+    <h3>Find something you copied earlier</h3>
+    <p>
+      Your Mac can now keep a list of things you've copied. Press {{ ui.combo("cmd space") }} to
+      open Spotlight, then {{ ui.combo("cmd 4") }} to see the list. Click any item to use it again.
+    </p>
+    <p>
+      Copied a password or student information? Clear the list: click the More (•••) button next to
+      the search field, then choose <b>Clear History</b>.
+    </p>
+    <p>
+      Not sure which macOS you have? Open the Apple menu and choose <b>About This Mac</b>.
+    </p>
+  </aside>
+
+  <div class="two-up">
+    <aside class="callout">
+      <span class="kicker">Try it this week</span>
+      <h3>Share a web page in four moves</h3>
+      <p>
+        In Safari or Chrome, press {{ ui.combo("cmd L") }} to select the web address and
+        {{ ui.combo("cmd C") }} to copy it. Jump to your email with {{ ui.combo("cmd tab") }},
+        then press {{ ui.combo("cmd V") }}.
+      </p>
+    </aside>
+    <aside class="callout">
+      <span class="kicker">Classroom corner</span>
+      <h3>Z, X, C, V live side by side</h3>
+      <div class="key-row">
+        {% for letter, word, spanish in [("Z", "Undo", "Deshacer"), ("X", "Cut", "Cortar"), ("C", "Copy", "Copiar"), ("V", "Paste", "Pegar")] %}
+        <figure>
+          {{ ui.keycap(parse_combo(letter)[0]) }}
+          <figcaption>{{ word }}<span lang="es">{{ spanish }}</span></figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      <p>
+        One hand can reach all four. Memory hooks for students: X looks like scissors, C is for copy,
+        and V points down, so you drop it in. Spanish words are included for multilingual learners.
+      </p>
+    </aside>
+  </div>
+</section>
+
+{% endblock %}
+
+{# The cheat sheet band sits outside <main> so its gray background can run edge to edge. #}
+{% block after_main %}
+<section class="cheatsheet-band" aria-labelledby="cheatsheet-heading">
+  <div>
+    <span class="kicker">Keep it handy</span>
+    <h2 id="cheatsheet-heading" class="nfv-headline"><b>Your Mac cheat sheet.</b> Copy it, print it, share it.</h2>
+    <p>
+      Every shortcut on this sheet works on macOS Sequoia 15, Tahoe 26, and macOS 27. A few newer
+      ones are tagged with the version they need.
+    </p>
+    <hr class="rule">
+
+    <figure class="cheatsheet-figure">
+      <a href="{{ sheet_png }}">
+        <img src="{{ sheet_png }}" width="{{ sheet.width }}" height="{{ sheet.height }}"
+             alt="North Fayette Valley Mac shortcuts cheat sheet. Sections: Everyday, Text, Screenshots, Finder, Web browser, and Apps and windows. A text version is linked below.">
+      </a>
+    </figure>
+
+    <div class="actions">
+      <button type="button" class="button" id="copy-sheet" data-src="{{ sheet_png }}">Copy image</button>
+      <a class="button button--secondary" href="{{ sheet_png }}" download="NFV-Mac-shortcuts.png">Download PNG</a>
+      <a class="button button--secondary" href="{{ sheet_html }}">Text version</a>
+      <span class="status" id="copy-status" role="status"></span>
+    </div>
+
+    <ul class="uses">
+      <li>Print it on letter paper and keep it next to your keyboard.</li>
+      <li>Paste it into a slide or a Google Classroom post for students.</li>
+      <li>Save it to your team's shared folder.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Pause / play every demo on the page (WCAG 2.2.2: moving content can be paused).
+  const motionToggles = document.querySelectorAll(".motion-toggle");
+  function setMotionPaused(paused) {
+    document.body.classList.toggle("motion-paused", paused);
+    motionToggles.forEach((button) => {
+      button.setAttribute("aria-pressed", String(paused));
+      button.textContent = paused ? "Play animations" : "Pause animations";
+    });
+  }
+  motionToggles.forEach((button) =>
+    button.addEventListener("click", () =>
+      setMotionPaused(!document.body.classList.contains("motion-paused"))
+    )
+  );
+
+  // Copy the cheat sheet PNG to the clipboard so staff can paste it anywhere.
+  const copyButton = document.getElementById("copy-sheet");
+  const copyStatus = document.getElementById("copy-status");
+  copyButton.addEventListener("click", async () => {
+    try {
+      // Safari needs the ClipboardItem to receive a promise, not a finished blob.
+      const png = fetch(copyButton.dataset.src).then((response) => response.blob());
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
+      copyStatus.textContent = "Copied! Paste it anywhere with Command-V.";
+    } catch (error) {
+      copyStatus.textContent = "Your browser blocked copying. Control-click the image and choose Copy Image.";
+    }
+  });
+</script>
+{% endblock %}

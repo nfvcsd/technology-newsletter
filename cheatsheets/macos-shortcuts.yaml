@@ -1,0 +1,110 @@
+# Mac keyboard shortcut cheat sheet.
+#
+# Rendered to site/cheatsheets/macos-shortcuts.png (and an .html version).
+# Every shortcut here was checked against Apple's "Mac keyboard shortcuts"
+# page (support.apple.com/102650) for macOS Sequoia 15 through macOS 27.
+#
+# Writing shortcuts:
+#   keys: "cmd shift 4"           one combo, tokens separated by spaces
+#   keys: ["ctrl cmd space", "fn E"]   several combos, joined by "or"
+#   join: then                    join several combos with "then" instead
+#   keys: "opt left/right"        a slash offers alternatives for the last key
+#   since: "Tahoe 26"             optional tag for shortcuts that need a newer macOS
+# Write modifiers in Apple's order: ctrl, opt, shift, cmd.
+
+slug: macos-shortcuts
+headline_lead: Mac shortcuts.
+headline_rest: Work faster every day.
+subtitle: For macOS Sequoia 15, Tahoe 26, and macOS 27
+# Page size in CSS pixels: US Letter at 150 dpi. Rendered at 2x for print.
+width: 1275
+height: 1650
+scale: 2
+
+sections:
+  - title: Everyday
+    column: 1
+    shortcuts:
+      - { keys: cmd C, action: Copy }
+      - { keys: cmd X, action: Cut }
+      - { keys: cmd V, action: Paste }
+      - { keys: cmd Z, action: Undo }
+      - { keys: shift cmd Z, action: Redo }
+      - { keys: cmd A, action: Select all }
+      - { keys: cmd S, action: Save }
+      - { keys: cmd P, action: Print }
+      - { keys: cmd F, action: Find }
+      - { keys: cmd O, action: Open }
+      - { keys: cmd N, action: New file or window }
+      - { keys: cmd W, action: Close window or tab }
+      - { keys: cmd Q, action: Quit app }
+      - { keys: cmd H, action: Hide app }
+      - { keys: cmd M, action: Minimize window }
+      - { keys: "cmd ,", action: App settings }
+
+  - title: Text
+    column: 2
+    shortcuts:
+      - { keys: cmd B, action: Bold }
+      - { keys: cmd I, action: Italic }
+      - { keys: cmd U, action: Underline }
+      - { keys: cmd K, action: Add a link }
+      - { keys: opt shift cmd V, action: Paste & match style }
+      - { keys: opt left/right, action: Jump word by word }
+      - { keys: cmd left/right, action: Start or end of line }
+      - { keys: opt delete, action: Delete whole word }
+
+  - title: Screenshots
+    column: 1
+    shortcuts:
+      - { keys: shift cmd 3, action: Whole screen }
+      - { keys: shift cmd 4, action: Select an area }
+      - { keys: [shift cmd 4, space], join: then, action: One window }
+      - { keys: shift cmd 5, action: Screenshot & record tools }
+      - { keys: ctrl shift cmd 4, action: "Copy area, don't save" }
+
+  - title: Finder
+    column: 2
+    shortcuts:
+      - { keys: shift cmd N, action: New folder }
+      - { keys: cmd D, action: Duplicate }
+      - { keys: cmd delete, action: Move to Trash }
+      - { keys: space, action: Quick Look preview }
+      - { keys: cmd I, action: Get Info }
+      - { keys: shift cmd G, action: Go to Folder }
+      - { keys: opt cmd L, action: Downloads }
+      - { keys: shift cmd D, action: Desktop }
+      - { keys: shift cmd O, action: Documents }
+      - { keys: shift cmd R, action: AirDrop }
+
+  - title: Web browser
+    column: 3
+    shortcuts:
+      - { keys: cmd T, action: New tab }
+      - { keys: shift cmd T, action: Reopen closed tab }
+      - { keys: ctrl tab, action: Next tab }
+      - { keys: cmd L, action: Go to address bar }
+      - { keys: cmd R, action: Reload page }
+      - { keys: cmd D, action: Bookmark page }
+      - { keys: cmd +/-, action: Zoom in or out }
+      - { keys: cmd 0, action: Reset zoom }
+
+  - title: Apps and windows
+    column: 3
+    shortcuts:
+      - { keys: cmd space, action: Spotlight search }
+      - { keys: [cmd space, cmd 4], join: then, action: Clipboard history, since: Tahoe 26 }
+      - { keys: cmd tab, action: Switch apps }
+      - { keys: "cmd `", action: Switch app windows }
+      - { keys: fn ctrl left/right, action: Tile window left/right, since: Sequoia 15 }
+      - { keys: fn ctrl F, action: Fill the screen, since: Sequoia 15 }
+      - { keys: opt cmd D, action: Show/hide the Dock }
+      - { keys: [ctrl cmd space, fn E], action: Emoji & symbols }
+      - { keys: ctrl cmd Q, action: Lock screen }
+      - { keys: opt cmd esc, action: Force Quit an app }
+
+legend: [cmd, opt, ctrl, shift, fn, delete]
+footer_tip:
+  lead: Stepping away from your desk?
+  keys: ctrl cmd Q
+  text: locks your screen in one move.

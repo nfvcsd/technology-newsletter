@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.name }}{% endblock %}</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/newsletter.css">
+{% block head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <div class="accent-bar"></div>
+
+  <header class="masthead">
+    <a href="index.html" class="masthead__logo">
+      <img src="assets/logos/school-logo-horizontal-color.svg" alt="North Fayette Valley" width="421" height="57">
+    </a>
+    <div class="masthead__meta">
+      <span class="masthead__name">{{ site.name }}</span>
+      {% block masthead_meta %}{% endblock %}
+    </div>
+  </header>
+
+  <main id="content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block after_main %}{% endblock %}
+
+  <footer class="site-footer nfv-dark">
+    <div class="site-footer__inner">
+      <img class="site-footer__logo" src="assets/logos/school-logo-horizontal-reversed.svg" alt="North Fayette Valley" width="421" height="57">
+      <p>{{ site.tagline }}</p>
+      <p>
+        <a href="index.html">All issues</a>
+        {% if site.contact_email %} · <a href="mailto:{{ site.contact_email }}">Questions or ideas? Email us</a>{% endif %}
+      </p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

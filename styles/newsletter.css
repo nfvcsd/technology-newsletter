@@ -1,0 +1,260 @@
+/* Page layout for newsletter issues and the archive. Swiss style: one strong
+   column, generous white space, thin rules, light-blue accents. */
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--nfv-white);
+  color: var(--nfv-black);
+  font-family: var(--nfv-font);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+img { max-width: 100%; height: auto; }
+
+a { color: var(--nfv-navy); text-underline-offset: 0.15em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--nfv-light-blue); outline-offset: 3px; }
+
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus { left: 16px; top: 16px; background: var(--nfv-white); padding: 8px 12px; z-index: 10; }
+
+.accent-bar { height: 10px; background: var(--nfv-light-blue); }
+
+/* ---------- Masthead ---------- */
+
+.masthead,
+main,
+.site-footer__inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px 32px;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+/* Clear space around the logo comes from the padding and gap. */
+.masthead__logo img { display: block; height: 40px; width: auto; }
+
+.masthead__meta { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.3; }
+.masthead__name { font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--nfv-navy); }
+.masthead__issue { font-size: 0.875rem; color: var(--nfv-cool-gray-9); }
+
+/* ---------- Type ---------- */
+
+h1, h2, h3 { line-height: 1.15; margin: 0; }
+.display { font-size: clamp(2rem, 6.5vw, 3.4rem); line-height: 1.05; }
+h2.nfv-headline { font-size: clamp(1.5rem, 4.2vw, 2.1rem); }
+h3 { font-size: 1.2rem; font-weight: 700; }
+
+.lede { font-size: 1.25rem; line-height: 1.5; margin: 20px 0 0; max-width: 40em; }
+.kicker {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nfv-cool-gray-9);
+}
+
+.rule { border: 0; border-top: 1px solid var(--nfv-black); margin: 32px 0 0; }
+
+.block { padding: 56px 0 0; }
+.block > p { max-width: 40em; }
+
+/* Keycaps inside running text stay small so line spacing holds. */
+p .key, .steps .key { font-size: 0.78em; }
+
+/* ---------- Animated demos ---------- */
+
+.demo { margin: 32px 0 0; }
+
+.demo__panel {
+  background: var(--nfv-cool-gray-2);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.demo__toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+.motion-toggle {
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--nfv-navy);
+  background: var(--nfv-white);
+  border: 1px solid var(--nfv-cool-gray-4);
+  border-radius: 999px;
+  padding: 4px 14px;
+  cursor: pointer;
+}
+.motion-toggle:hover { border-color: var(--nfv-navy); }
+
+/* Steps under each demo light up in time with the animation. */
+.steps {
+  list-style: none;
+  counter-reset: step;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+}
+.steps li {
+  counter-increment: step;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--nfv-white);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.steps li::before {
+  content: counter(step);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  background: var(--nfv-navy);
+  color: var(--nfv-white);
+  font-weight: 800;
+  font-size: 0.875rem;
+}
+.steps .key { font-size: 0.8rem; }
+
+.demo figcaption { margin-top: 12px; font-size: 0.9375rem; color: var(--nfv-cool-gray-9); }
+
+/* ---------- Shortcut cards ---------- */
+
+.cards {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+.card {
+  border-top: 4px solid var(--nfv-light-blue);
+  background: var(--nfv-white);
+  box-shadow: 0 0 0 1px var(--nfv-cool-gray-2);
+  padding: 20px;
+}
+.card .combos { font-size: 1.25rem; }
+.card h3 { margin: 16px 0 6px; }
+.card p { margin: 0; font-size: 0.975rem; }
+.card--bonus { border-top-color: var(--nfv-navy); }
+
+/* ---------- Callouts ---------- */
+
+.callout {
+  margin: 32px 0 0;
+  padding: 24px 28px;
+  border-left: 6px solid var(--nfv-light-blue);
+  background: var(--nfv-white);
+  box-shadow: 0 0 0 1px var(--nfv-cool-gray-2);
+}
+.callout h3 { margin-bottom: 8px; }
+.callout p { margin: 8px 0 0; }
+.callout .combos { font-size: 0.95em; }
+
+.two-up { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 32px; }
+.two-up .callout { margin: 0; }
+
+/* Z X C V keyboard row in the classroom corner */
+.key-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0 4px; }
+.key-row figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.key-row .key { font-size: 1.4rem; }
+.key-row figcaption { font-size: 0.8125rem; font-weight: 700; line-height: 1.2; text-align: center; }
+.key-row figcaption span { display: block; font-weight: 400; color: var(--nfv-cool-gray-9); }
+
+/* ---------- Cheat sheet (bottom half) ---------- */
+
+.cheatsheet-band {
+  margin-top: 72px;
+  padding: 64px 0 72px;
+  background: var(--nfv-cool-gray-2);
+}
+.cheatsheet-band > div { max-width: 860px; margin: 0 auto; padding: 0 32px; }
+.cheatsheet-band .rule { border-top-color: var(--nfv-black); }
+
+.cheatsheet-figure { margin: 32px 0 0; }
+.cheatsheet-figure img {
+  display: block;
+  width: 100%;
+  background: var(--nfv-white);
+  box-shadow: 0 2px 4px rgba(5, 28, 44, 0.12), 0 12px 32px rgba(5, 28, 44, 0.12);
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; align-items: center; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid var(--nfv-navy);
+  background: var(--nfv-navy);
+  color: var(--nfv-white);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover { background: var(--nfv-midnight); border-color: var(--nfv-midnight); }
+.button--secondary { background: var(--nfv-white); color: var(--nfv-navy); }
+.button--secondary:hover { background: var(--nfv-white); color: var(--nfv-midnight); }
+.status { font-size: 0.9375rem; font-weight: 600; color: var(--nfv-navy); min-height: 1.5em; }
+
+.uses { margin: 24px 0 0; padding-left: 1.2em; }
+.uses li + li { margin-top: 4px; }
+
+/* ---------- Footer ---------- */
+
+.site-footer { padding: 48px 0 56px; background: var(--nfv-midnight); }
+.site-footer__inner { color: var(--nfv-white); }
+.site-footer__logo { display: block; height: 36px; width: auto; margin-bottom: 24px; }
+.site-footer p { margin: 6px 0 0; }
+.site-footer a { color: var(--nfv-light-blue); }
+
+/* ---------- Archive ---------- */
+
+.archive { list-style: none; padding: 0; margin: 24px 0 64px; }
+.archive li { border-bottom: 1px solid var(--nfv-cool-gray-4); }
+.archive a { display: block; padding: 20px 0; text-decoration: none; color: var(--nfv-black); }
+.archive a:hover .archive__title { color: var(--nfv-navy); text-decoration: underline; }
+.archive__meta { display: block; font-size: 0.875rem; color: var(--nfv-cool-gray-9); }
+.archive__title { display: block; font-size: 1.4rem; font-weight: 800; }
+.archive__summary { display: block; }
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 600px) {
+  .masthead, main, .site-footer__inner, .cheatsheet-band > div { padding-left: 16px; padding-right: 16px; }
+  .masthead__meta { align-items: flex-start; }
+  .masthead__logo img { height: 36px; }
+  .demo__panel { padding: 14px; }
+  .steps { grid-template-columns: 1fr; }
+  .callout { padding: 20px; }
+}

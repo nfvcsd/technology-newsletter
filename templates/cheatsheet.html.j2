@@ -1,0 +1,132 @@
+{% import "macros.html.j2" as ui %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width={{ sheet.width }}">
+<title>{{ sheet.headline_lead }} {{ sheet.headline_rest }}</title>
+<link rel="stylesheet" href="../assets/brand.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    width: {{ sheet.width }}px;
+    height: {{ sheet.height }}px;
+    background: var(--nfv-white);
+    color: var(--nfv-black);
+    font-family: var(--nfv-font);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .accent { height: 16px; background: var(--nfv-light-blue); flex: none; }
+
+  header { padding: 52px 72px 0; flex: none; }
+  .logo { display: block; height: 58px; width: auto; margin-bottom: 34px; }
+  h1 { margin: 0; font-size: 50px; line-height: 1.1; }
+  .subtitle { margin: 10px 0 0; font-size: 21px; color: var(--nfv-cool-gray-9); }
+  .rule { border: 0; border-top: 2px solid var(--nfv-black); margin: 30px 0 0; }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 44px;
+    padding: 30px 72px 0;
+  }
+
+  section + section { margin-top: 30px; }
+  h2 {
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--nfv-cool-gray-4);
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--nfv-navy);
+  }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+  /* Keys in a fixed-width column so every action lines up. */
+  li {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    column-gap: 14px;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 19px;
+    line-height: 1.25;
+  }
+  li .combos { display: flex; flex-wrap: wrap; align-items: center; row-gap: 6px; font-size: 17px; }
+
+  footer {
+    flex: none;
+    margin-top: 24px;
+    background: var(--nfv-cool-gray-2);
+    padding: 26px 72px 30px;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 30px; font-size: 18px; }
+  .legend span { display: inline-flex; align-items: center; gap: 9px; }
+  .legend .key { font-size: 17px; }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--nfv-cool-gray-4);
+    font-size: 18px;
+  }
+  .tip { display: inline-flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .tip b { font-weight: 800; color: var(--nfv-navy); }
+  .tip .combos { font-size: 16px; }
+  .credit { color: var(--nfv-black); font-weight: 600; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="accent"></div>
+
+  <header>
+    <img class="logo" src="../assets/logos/school-logo-horizontal-color.svg" alt="North Fayette Valley">
+    {{ ui.headline(sheet.headline_lead, sheet.headline_rest, tag="h1") }}
+    <p class="subtitle">{{ sheet.subtitle }}</p>
+    <hr class="rule">
+  </header>
+
+  <main>
+    {% for column in [1, 2, 3] %}
+    <div class="column">
+      {% for section in sheet.sections if section.column == column %}
+      <section>
+        <h2>{{ section.title }}</h2>
+        <ul>
+          {% for item in section.shortcuts %}
+          <li>
+            {{ ui.combos(item["keys"], item.join | default("or")) }}
+            <span class="action">{{ item.action }}{% if item.since is defined %}<span class="since-tag">{{ item.since }}+</span>{% endif %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </main>
+
+  <footer>
+    <div class="legend">
+      {% for name in sheet.legend %}
+      {% set key = parse_combo(name)[0] %}
+      <span>{{ ui.keycap(key) }} {{ key.name }}</span>
+      {% endfor %}
+    </div>
+    <div class="footer-row">
+      <span class="tip"><b>{{ sheet.footer_tip.lead }}</b> {{ ui.combos(sheet.footer_tip["keys"]) }} {{ sheet.footer_tip.text }}</span>
+      <span class="credit">{{ site.name }} · {{ site.publisher }}</span>
+    </div>
+  </footer>
+</body>
+</html>

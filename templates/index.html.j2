@@ -1,0 +1,23 @@
+{% extends "base.html.j2" %}
+{% import "macros.html.j2" as ui %}
+
+{% block title %}{{ site.name }} archive{% endblock %}
+
+{% block content %}
+<section class="block">
+  {{ ui.headline(site.name ~ ".", "Every issue, newest first.", tag="h1", class_="display") }}
+  <p class="lede">{{ site.tagline }}</p>
+  <hr class="rule">
+  <ol class="archive" reversed>
+    {% for issue in issues %}
+    <li>
+      <a href="{{ issue.filename }}">
+        <span class="archive__meta">Issue {{ issue.number }} · {{ issue.published.strftime("%B %-d, %Y") }}</span>
+        <span class="archive__title">{{ issue.title }}</span>
+        <span class="archive__summary">{{ issue.summary }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}

@@ -1,0 +1,6 @@
+# Site-wide settings for the newsletter.
+name: Tech Bytes
+tagline: One small tech skill each week, from the NFV Technology Department.
+publisher: NFV Technology Department
+# Shown in each issue's footer. Leave contact_email empty to hide the link.
+contact_email: ""

@@ -1,0 +1,27 @@
+/*
+ * NFV brand tokens and type (from the district guide "How we look", v1.0).
+ * Fonts are self-hosted from brand/fonts so pages work offline and send no
+ * visitor data to third parties.
+ */
+
+@font-face { font-family: "Open Sans"; font-weight: 400; font-display: swap; src: url("fonts/OpenSans-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Open Sans"; font-weight: 600; font-display: swap; src: url("fonts/OpenSans-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Open Sans"; font-weight: 700; font-display: swap; src: url("fonts/OpenSans-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Open Sans"; font-weight: 800; font-display: swap; src: url("fonts/OpenSans-ExtraBold.ttf") format("truetype"); }
+
+:root {
+  --nfv-light-blue: #6AB2E2;
+  --nfv-black: #231F20;
+  --nfv-cool-gray-4: #BCBEC0;
+  --nfv-white: #FFFFFF;
+  --nfv-cool-gray-2: #DAD9D7;
+  --nfv-cool-gray-9: #6D6E71;
+  --nfv-navy: #002F6D;
+  --nfv-midnight: #051C2C;
+  --nfv-font: "Open Sans", Arial, sans-serif;
+}
+
+/* Signature two-part headline: <h2 class="nfv-headline"><b>Lead.</b> continuation</h2> */
+.nfv-headline { text-transform: uppercase; font-weight: 400; letter-spacing: 0.01em; }
+.nfv-headline b { font-weight: 800; color: var(--nfv-navy); }
+.nfv-dark .nfv-headline b { color: var(--nfv-light-blue); }

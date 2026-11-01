@@ -1,0 +1,43 @@
+{#- Shared template macros. Import with: {% import "macros.html.j2" as ui %} -#}
+
+{#- One keycap. `key` is a keys.Key. -#}
+{% macro keycap(key, show_name=false) -%}
+{%- if key.separator -%}
+<span class="key-alt" aria-hidden="true">/</span><span class="sr-only">or</span>
+{%- else -%}
+<kbd class="key{% if key.wide %} key--wide{% endif %}" title="{{ key.name }}">
+  {%- if key.icon -%}
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ icon_paths[key.icon] }}"/></svg>
+  {%- endif -%}
+  {%- if key.text -%}
+  <span class="key__text{% if key.icon %} key__text--small{% endif %}" aria-hidden="true">{{ key.text }}</span>
+  {%- endif -%}
+  {%- if show_name and not key.text -%}
+  <span class="key__text key__text--small" aria-hidden="true">{{ key.name | lower }}</span>
+  {%- endif -%}
+  <span class="sr-only">{{ key.name }}</span>
+</kbd>
+{%- endif -%}
+{%- endmacro %}
+
+{#- A full combo such as "cmd shift 4". Nested <kbd> is the HTML way to mark up key combos. -#}
+{% macro combo(text, show_names=false) -%}
+<kbd class="combo">
+  {%- for key in parse_combo(text) %}{{ keycap(key, show_names) }}{% endfor -%}
+</kbd>
+{%- endmacro %}
+
+{#- One or more combos joined by "or" (default) or "then". `keys` may be a string or a list. -#}
+{% macro combos(keys, join="or") -%}
+{%- set items = [keys] if keys is string else keys -%}
+<span class="combos">
+  {%- for item in items -%}
+  {{ combo(item) }}{% if not loop.last %}<span class="combo-join">{{ join }}</span>{% endif %}
+  {%- endfor -%}
+</span>
+{%- endmacro %}
+
+{#- Two-part brand headline: bold lead phrase, regular continuation. -#}
+{% macro headline(lead, rest, tag="h2", class_="") -%}
+<{{ tag }} class="nfv-headline {{ class_ }}"><b>{{ lead }}</b> {{ rest }}</{{ tag }}>
+{%- endmacro %}
