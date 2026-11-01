@@ -1,0 +1,59 @@
+{% import "email_macros.html.j2" as em %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>{{ site.name }} #{{ issue.number }}: {{ issue.title }}</title>
+{# Apple Mail and iOS Mail load Open Sans; everyone else falls back to Arial. #}
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#DAD9D7;">
+  {# Preview text shown next to the subject line in the inbox. #}
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{{ issue.summary }}</div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#DAD9D7;">
+    <tr>
+      <td align="center" style="padding:24px 8px;">
+
+        <p style="margin:0 0 12px;font-family:{{ em.FONT }};font-size:12px;color:{{ em.GRAY_9 }};">
+          Animations not moving? <a href="{{ absolute(issue.filename) }}" style="color:{{ em.NAVY }};">Open this issue in your browser</a>.
+        </p>
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#FFFFFF;">
+          <tr><td style="height:8px;line-height:8px;font-size:8px;background:{{ em.LIGHT_BLUE }};">&nbsp;</td></tr>
+
+          {# Masthead: logo, then the newsletter name. One column so it fits a phone. #}
+          <tr>
+            <td style="padding:28px 28px 8px;">
+              <img src="{{ absolute('assets/logos/school-logo-horizontal-color.png') }}" alt="North Fayette Valley" width="220" style="display:block;width:220px;max-width:100%;height:auto;border:0;">
+              <p style="margin:16px 0 0;font-family:{{ em.FONT }};font-size:12px;line-height:1.4;color:{{ em.GRAY_9 }};">
+                <strong style="font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:{{ em.NAVY }};">{{ site.name }}</strong>
+                &nbsp;·&nbsp; Issue {{ issue.number }} &nbsp;·&nbsp; {{ issue.published.strftime("%B %-d, %Y") }}
+              </p>
+            </td>
+          </tr>
+
+          {% block content %}{% endblock %}
+
+          {# Footer #}
+          <tr>
+            <td style="padding:36px 28px;background:{{ em.MIDNIGHT }};">
+              <img src="{{ absolute('assets/logos/school-logo-horizontal-reversed.png') }}" alt="North Fayette Valley" width="200" style="display:block;width:200px;max-width:100%;height:auto;border:0;margin-bottom:20px;">
+              <p style="margin:0 0 6px;font-family:{{ em.FONT }};font-size:14px;line-height:1.5;color:#FFFFFF;">{{ site.tagline }}</p>
+              <p style="margin:0;font-family:{{ em.FONT }};font-size:14px;line-height:1.5;color:#FFFFFF;">
+                <a href="{{ absolute('index.html') }}" style="color:{{ em.LIGHT_BLUE }};">All issues</a>
+                {% if site.contact_email %} · Questions or ideas? <a href="mailto:{{ site.contact_email }}" style="color:{{ em.LIGHT_BLUE }};">{{ site.contact_email }}</a>{% endif %}
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

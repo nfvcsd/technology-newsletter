@@ -1,0 +1,126 @@
+{#-
+  Building blocks for the email version of an issue.
+
+  Email apps ignore most CSS: no variables, no animations, no SVG, and Gmail
+  drops <style> blocks when a message is pasted in. So every style here is
+  inline, layout is done with tables, and colors are written out as hex.
+  Import with: {% import "email_macros.html.j2" as em %}
+-#}
+{% set FONT = "'Open Sans', Arial, Helvetica, sans-serif" %}
+{% set NAVY = "#002F6D" %}
+{% set BLACK = "#231F20" %}
+{% set GRAY_9 = "#6D6E71" %}
+{% set GRAY_4 = "#BCBEC0" %}
+{% set GRAY_2 = "#DAD9D7" %}
+{% set LIGHT_BLUE = "#6AB2E2" %}
+{% set MIDNIGHT = "#051C2C" %}
+
+{#- Text styles, reused below. -#}
+{% set BODY_TEXT = "margin:0 0 16px;font-family:" ~ FONT ~ ";font-size:16px;line-height:1.6;color:" ~ BLACK ~ ";" %}
+{% set KICKER = "margin:0 0 8px;font-family:" ~ FONT ~ ";font-size:12px;line-height:1.4;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:" ~ GRAY_9 ~ ";" %}
+
+{#- One row of the 600px email: content with side padding. -#}
+{% macro row(padding="0 28px 32px", background="#FFFFFF") -%}
+<tr>
+  <td style="padding:{{ padding }};background:{{ background }};">
+    {{ caller() }}
+  </td>
+</tr>
+{%- endmacro %}
+
+{% macro paragraph() -%}
+<p style="{{ BODY_TEXT }}">{{ caller() }}</p>
+{%- endmacro %}
+
+{% macro kicker(text) -%}
+<p style="{{ KICKER }}">{{ text }}</p>
+{%- endmacro %}
+
+{#- Brand headline: bold navy lead phrase, regular continuation, all caps. -#}
+{% macro headline(lead, rest, size=26) -%}
+<h2 style="margin:0 0 16px;font-family:{{ FONT }};font-size:{{ size }}px;line-height:1.15;font-weight:400;text-transform:uppercase;color:{{ BLACK }};">
+  <strong style="font-weight:800;color:{{ NAVY }};">{{ lead }}</strong> {{ rest }}
+</h2>
+{%- endmacro %}
+
+{% macro rule() -%}
+<div style="height:1px;line-height:1px;font-size:1px;background:{{ BLACK }};">&nbsp;</div>
+{%- endmacro %}
+
+{#- Keycaps as styled text. The Unicode symbols (⌘ ⌥ ⌃ ⇧) come from the
+    reader's system fonts, which every Mac, iPhone, and Chromebook has. -#}
+{% macro combo(text) -%}
+<span style="white-space:nowrap;">
+{%- for key in parse_combo(text) -%}
+{%- if key.separator -%}
+<span style="font-family:{{ FONT }};color:{{ GRAY_9 }};font-weight:700;">&nbsp;/&nbsp;</span>
+{%- else -%}
+<span title="{{ key.name }}" style="display:inline-block;min-width:14px;margin:0 1px;padding:1px 6px;border-radius:4px;background:{{ NAVY }};color:#FFFFFF;font-family:{{ FONT }};font-size:0.85em;font-weight:700;line-height:1.5;text-align:center;white-space:nowrap;">{{ key.plain }}</span>
+{%- endif -%}
+{%- endfor -%}
+</span>
+{%- endmacro %}
+
+{% macro combos(keys, join="or") -%}
+{%- set items = [keys] if keys is string else keys -%}
+{%- for item in items -%}
+{{ combo(item) }}{% if not loop.last %}<span style="font-family:{{ FONT }};font-size:13px;color:{{ GRAY_9 }};"> {{ join }} </span>{% endif %}
+{%- endfor -%}
+{%- endmacro %}
+
+{#- Full-width image that links somewhere. `width` is the display width in px. -#}
+{% macro image(src, alt, width=520, href=none) -%}
+{% if href %}<a href="{{ href }}" style="text-decoration:none;">{% endif -%}
+<img src="{{ src }}" alt="{{ alt }}" width="{{ width }}" style="display:block;width:100%;max-width:{{ width }}px;height:auto;border:0;outline:none;text-decoration:none;">
+{%- if href %}</a>{% endif %}
+{%- endmacro %}
+
+{#- Navy button. Built from a table cell so Outlook keeps the fill. -#}
+{% macro button(href, label) -%}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td style="border-radius:8px;background:{{ NAVY }};">
+      <a href="{{ href }}" style="display:inline-block;padding:12px 22px;font-family:{{ FONT }};font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:8px;">{{ label }}</a>
+    </td>
+  </tr>
+</table>
+{%- endmacro %}
+
+{#- Boxed tip with a light-blue edge. -#}
+{% macro callout(label, title) -%}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td width="6" style="width:6px;background:{{ LIGHT_BLUE }};font-size:1px;">&nbsp;</td>
+    <td style="padding:20px 22px 4px;border:1px solid {{ GRAY_2 }};border-left:0;">
+      {{ kicker(label) }}
+      <h3 style="margin:0 0 10px;font-family:{{ FONT }};font-size:18px;line-height:1.3;font-weight:700;color:{{ BLACK }};">{{ title }}</h3>
+      {{ caller() }}
+    </td>
+  </tr>
+</table>
+{%- endmacro %}
+
+{#- A shortcut with its name and a sentence about it, keys on the left. -#}
+{% macro shortcut(keys, title) -%}
+<tr>
+  <td valign="top" width="100" style="width:100px;padding:14px 12px 14px 0;border-top:1px solid {{ GRAY_2 }};font-size:17px;">{{ combos(keys) }}</td>
+  <td valign="top" style="padding:14px 0;border-top:1px solid {{ GRAY_2 }};">
+    <p style="margin:0 0 2px;font-family:{{ FONT }};font-size:16px;line-height:1.4;font-weight:700;color:{{ BLACK }};">{{ title }}</p>
+    <p style="margin:0;font-family:{{ FONT }};font-size:15px;line-height:1.5;color:{{ BLACK }};">{{ caller() }}</p>
+  </td>
+</tr>
+{%- endmacro %}
+
+{#- Numbered steps under a GIF, so the demo also reads as text. -#}
+{% macro steps(items) -%}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+  {% for item in items %}
+  <tr>
+    <td valign="top" width="30" style="width:30px;padding:4px 0;">
+      <span style="display:inline-block;width:22px;height:22px;border-radius:11px;background:{{ NAVY }};color:#FFFFFF;font-family:{{ FONT }};font-size:12px;font-weight:800;line-height:22px;text-align:center;">{{ loop.index }}</span>
+    </td>
+    <td valign="top" style="padding:4px 0;font-family:{{ FONT }};font-size:15px;line-height:22px;color:{{ BLACK }};">{{ item }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{%- endmacro %}

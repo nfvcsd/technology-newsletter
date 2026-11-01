@@ -37,6 +37,12 @@ class Key:
     icon: str = ""  # key into ICON_PATHS, if the key shows a symbol
     wide: bool = False  # True for keys like Space that need a wider cap
     separator: bool = False  # True for the "/" between alternative keys
+    symbol: str = ""  # Unicode stand-in for the icon, for email where SVG can't go
+
+    @property
+    def plain(self) -> str:
+        """How the key reads as plain text: the symbol, else the printed text."""
+        return self.symbol or self.text
 
 
 ALTERNATIVE = Key("or", text="/", separator=True)
@@ -44,16 +50,16 @@ ALTERNATIVE = Key("or", text="/", separator=True)
 
 # Named keys, in the order Apple lists modifiers (⌃ ⌥ ⇧ ⌘).
 NAMED_KEYS: dict[str, Key] = {
-    "ctrl": Key("Control", icon="control"),
-    "opt": Key("Option", icon="option"),
-    "shift": Key("Shift", icon="shift"),
-    "cmd": Key("Command", icon="command"),
-    "fn": Key("Globe (fn)", icon="globe"),
-    "delete": Key("Delete", icon="delete"),
-    "left": Key("Left Arrow", icon="left"),
-    "right": Key("Right Arrow", icon="right"),
-    "up": Key("Up Arrow", icon="up"),
-    "down": Key("Down Arrow", icon="down"),
+    "ctrl": Key("Control", icon="control", symbol="⌃"),
+    "opt": Key("Option", icon="option", symbol="⌥"),
+    "shift": Key("Shift", icon="shift", symbol="⇧"),
+    "cmd": Key("Command", icon="command", symbol="⌘"),
+    "fn": Key("Globe (fn)", icon="globe", symbol="fn"),
+    "delete": Key("Delete", icon="delete", symbol="⌫"),
+    "left": Key("Left Arrow", icon="left", symbol="←"),
+    "right": Key("Right Arrow", icon="right", symbol="→"),
+    "up": Key("Up Arrow", icon="up", symbol="↑"),
+    "down": Key("Down Arrow", icon="down", symbol="↓"),
     "space": Key("Space bar", text="Space", wide=True),
     "tab": Key("Tab", text="Tab", wide=True),
     "esc": Key("Escape", text="esc", wide=True),

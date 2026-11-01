@@ -1,0 +1,113 @@
+{% extends "email_base.html.j2" %}
+{% import "email_macros.html.j2" as em %}
+{% set sheet = cheatsheets["macos-shortcuts"] %}
+{% set sheet_png = absolute("cheatsheets/" ~ sheet.slug ~ ".png") %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ Hero #}
+{% call em.row("28px 28px 8px") %}
+  {{ em.kicker("Issue " ~ issue.number ~ " · This week's skill") }}
+  {{ em.headline("Copy, paste, done.", "The shortcuts you'll use every day.", size=28) }}
+  {% call em.paragraph() %}
+    Welcome to {{ site.name }}, one small tech skill each week. We're starting with the five
+    keyboard shortcuts that do the most work: copy, cut, paste, undo, and select all.
+  {% endcall %}
+  {{ em.rule() }}
+{% endcall %}
+
+{# ---------------------------------------------------- Meet the Command key #}
+{% call em.row("28px 28px 32px") %}
+  {{ em.headline("Meet Command.", "Your shortcut key.") }}
+  {% call em.paragraph() %}
+    On a Mac, most shortcuts start with the Command key {{ em.combo("cmd") }}. You'll find one on
+    each side of the space bar. Hold it down, tap a letter, then let go of both. Used Windows or a
+    Chromebook before? Command does the job that Ctrl does there.
+  {% endcall %}
+  {{ em.image(absolute(gifs["copy-paste"]), "Animation: the words due Friday are selected in Notes, Command C copies them, and Command V pastes them into an email.", href=absolute(issue.filename)) }}
+  {% set step_2 %}Press {{ em.combo("cmd C") }} to copy{% endset %}
+  {% set step_3 %}Click where it goes and press {{ em.combo("cmd V") }}{% endset %}
+  {{ em.steps(["Drag to select the text", step_2, step_3]) }}
+{% endcall %}
+
+{# ------------------------------------------------------- The essential five #}
+{% call em.row("0 28px 32px") %}
+  {{ em.headline("The essential five.", "Learn these first.") }}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    {% call em.shortcut("cmd C", "Copy") %}Makes a copy of what you selected. The original stays put.{% endcall %}
+    {% call em.shortcut("cmd X", "Cut") %}Takes out what you selected so you can paste it somewhere else. Handy for moving a sentence or paragraph.{% endcall %}
+    {% call em.shortcut("cmd V", "Paste") %}Puts in whatever you last copied or cut, right where your cursor is.{% endcall %}
+    {% call em.shortcut("cmd Z", "Undo") %}Your oops button. Press it again to keep stepping back. {{ em.combo("shift cmd Z") }} redoes it.{% endcall %}
+    {% call em.shortcut("cmd A", "Select all") %}Selects everything in a document, text box, or Finder window. Great right before a copy.{% endcall %}
+    {% call em.shortcut("opt shift cmd V", "Bonus: Paste and match style") %}Pastes plain text that matches your document, without the fonts and colors from the website you copied it from. In Google Docs, use {{ em.combo("shift cmd V") }}.{% endcall %}
+  </table>
+{% endcall %}
+
+{# ---------------------------------------------------------------- Undo demo #}
+{% call em.row("0 28px 32px") %}
+  {{ em.headline("Oops?", "Undo has your back.") }}
+  {% call em.paragraph() %}
+    Deleted the wrong thing? Don't retype it. Press {{ em.combo("cmd Z") }} and it comes right back.
+    Undo works in almost every app, including Google Docs, Pages, Mail, and even Finder when you
+    drag a file to the wrong folder.
+  {% endcall %}
+  {{ em.image(absolute(gifs["undo"]), "Animation: part of a sentence is deleted by mistake, then Command Z brings it back.", href=absolute(issue.filename)) }}
+  {% set undo_step_2 %}Press {{ em.combo("cmd Z") }}{% endset %}
+  {{ em.steps(["Text gets deleted by mistake", undo_step_2, "It's back, just like before"]) }}
+{% endcall %}
+
+{# ------------------------------------------------------------ Callouts #}
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("New on your Mac · macOS Tahoe 26 and later", "Find something you copied earlier") %}
+    {% call em.paragraph() %}
+      Your Mac can now keep a list of things you've copied. Press {{ em.combo("cmd space") }} to open
+      Spotlight, then {{ em.combo("cmd 4") }} to see the list. Click any item to use it again.
+    {% endcall %}
+    {% call em.paragraph() %}
+      Copied a password or student information? Clear the list: click the More (•••) button next to
+      the search field, then choose <strong>Clear History</strong>.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("Try it this week", "Share a web page in four moves") %}
+    {% call em.paragraph() %}
+      In Safari or Chrome, press {{ em.combo("cmd L") }} to select the web address and
+      {{ em.combo("cmd C") }} to copy it. Jump to your email with {{ em.combo("cmd tab") }}, then
+      press {{ em.combo("cmd V") }}.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 40px") %}
+  {% call em.callout("Classroom corner", "Z, X, C, V live side by side") %}
+    {% call em.paragraph() %}
+      {{ em.combo("Z") }} Undo <span lang="es" style="color:{{ em.GRAY_9 }};">(deshacer)</span> &nbsp;
+      {{ em.combo("X") }} Cut <span lang="es" style="color:{{ em.GRAY_9 }};">(cortar)</span> &nbsp;
+      {{ em.combo("C") }} Copy <span lang="es" style="color:{{ em.GRAY_9 }};">(copiar)</span> &nbsp;
+      {{ em.combo("V") }} Paste <span lang="es" style="color:{{ em.GRAY_9 }};">(pegar)</span>
+    {% endcall %}
+    {% call em.paragraph() %}
+      One hand can reach all four. Memory hooks for students: X looks like scissors, C is for copy,
+      and V points down, so you drop it in. Spanish words are included for multilingual learners.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{# ------------------------------------------------------- Cheat sheet #}
+{% call em.row("0 28px 40px") %}
+  {{ em.rule() }}
+  <div style="height:28px;line-height:28px;font-size:28px;">&nbsp;</div>
+  {{ em.kicker("Keep it handy") }}
+  {{ em.headline("Your Mac cheat sheet.", "Copy it, print it, share it.") }}
+  {% call em.paragraph() %}
+    Every shortcut on this sheet works on macOS Sequoia 15, Tahoe 26, and macOS 27. Click the sheet
+    to open the full-size image, then Control-click it and choose Copy Image or Save Image.
+  {% endcall %}
+  {{ em.image(sheet_png, "North Fayette Valley Mac shortcuts cheat sheet, with sections for everyday, text, screenshots, Finder, web browser, and apps and windows shortcuts.", href=sheet_png) }}
+  <div style="height:20px;line-height:20px;font-size:20px;">&nbsp;</div>
+  {{ em.button(sheet_png, "Open the full-size cheat sheet") }}
+{% endcall %}
+
+{% endblock %}

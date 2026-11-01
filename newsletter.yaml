@@ -4,3 +4,6 @@ tagline: One small tech skill each week, from the NFV Technology Department.
 publisher: NFV Technology Department
 # Shown in each issue's footer. Leave contact_email empty to hide the link.
 contact_email: "help@nfv.k12.ia.us"
+# Where GitHub Pages publishes the site. Email versions load their images from
+# here, so this must be the live public address, ending in a slash.
+base_url: "https://nfvcsd.github.io/technology-newsletter/"

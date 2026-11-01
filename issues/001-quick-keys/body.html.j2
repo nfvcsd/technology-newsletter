@@ -70,7 +70,8 @@
 
   /* ---- Demo 1: copy and paste (10 s loop) ---- */
   .copy-demo { --dur: 10s; }
-  .copy-demo .sel { position: relative; }
+  /* nowrap keeps each phrase on one line so its highlight and pointer stay in one piece */
+  .copy-demo .sel { position: relative; white-space: nowrap; }
   .copy-demo .sel::before {
     content: "";
     position: absolute;
@@ -83,7 +84,7 @@
     animation: select var(--dur) infinite;
   }
   .copy-demo .pointer--select { top: 0.75em; left: 0; animation: drag var(--dur) infinite; }
-  .copy-demo .paste-spot { position: relative; }
+  .copy-demo .paste-spot { position: relative; white-space: nowrap; }
   .copy-demo .pointer--click { top: 0.75em; left: -0.2em; opacity: 0; animation: click var(--dur) infinite; }
   .copy-demo .paste {
     display: inline-block;
@@ -214,7 +215,7 @@
     Used Windows or a Chromebook before? Command does the job that Ctrl does there.
   </p>
 
-  <figure class="demo copy-demo">
+  <figure class="demo copy-demo" data-gif="copy-paste" data-gif-seconds="10" data-gif-start="0.8">
     <div class="demo__panel">
       {{ pause_button() }}
       <div class="windows" aria-hidden="true">
@@ -285,7 +286,7 @@
     drag a file to the wrong folder.
   </p>
 
-  <figure class="demo undo-demo">
+  <figure class="demo undo-demo" data-gif="undo" data-gif-seconds="8" data-gif-start="0.7">
     <div class="demo__panel">
       {{ pause_button() }}
       <div class="windows windows--single" aria-hidden="true">
