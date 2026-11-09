@@ -118,7 +118,9 @@ Issue 1 is the reference. The pattern:
 
 ## Animations (web)
 
-Each demo is pure CSS: no JS animation libraries.
+Each demo is pure CSS: no JS animation libraries. Each issue keeps its own
+demo CSS in its `body.html.j2`, so building a new issue never changes an old
+one. Copy what you need from an earlier issue rather than sharing it.
 
 - One loop per demo: set `--dur` on the figure. Every element in that demo
   animates on that same duration with keyframe percentages, so all the parts
@@ -133,6 +135,10 @@ Each demo is pure CSS: no JS animation libraries.
 - Attach pointers and highlights to the text span they act on, so layout
   changes can't knock them out of place. Give those spans `white-space: nowrap`
   so they don't break across lines; that broke the highlight once.
+- Give every keyframe in an animation the same set of properties. If a
+  property such as `color` appears in only some keyframes, the browser fades it
+  across the gap between them, and the element looks dim for most of the loop.
+  That happened to the Record button in Issue 2.
 - For the email GIF, add `data-gif="name" data-gif-seconds="<loop length>"
   data-gif-start="<0–1>"` to the `<figure>`. Start on a frame that makes sense
   alone, usually the finished state, because Outlook for Windows shows only
@@ -145,19 +151,21 @@ paste), CSS variables, SVG, or JS. So:
 
 - Use only the `em.` macros in `templates/email_macros.html.j2`: inline
   styles, a 600px table, hex colors, keycaps as styled text spans, and each
-  demo as a GIF via `gifs["name"]`.
+  demo as a GIF via `gifs["name"]`. `em.shortcut` takes `join="then"` for
+  sequences like ⇧⌘4 then Space.
 - Build every image and link URL with `absolute(path)`, which resolves against
   `base_url`. The email loads its images from the live site, so the issue must
   be pushed and deployed before anyone sends it.
 - Keep the email HTML under about 100 KB (Gmail clips longer messages; issue 1
-  is about 35 KB) and each GIF under about 500 KB (issue 1's are 145–210 KB).
+  is about 35 KB) and each GIF under about 500 KB (issues 1–2 run 145–345 KB).
 - Single column only. A paste into Gmail strips media queries, so layouts
   can't change for phones.
 
-Sending: for Gmail, open `<base_url>email/<slug>.html` in Chrome, press ⌘A
-then ⌘C, and paste into a new message. For Outlook or Apple Mail, open the
-`.eml` (in Apple Mail, choose Message → Send Again). Automated sending (for
-example through the Gmail API) isn't built yet.
+**Sending is Alex's job, always by hand.** He opens
+`<base_url>email/<slug>.html` in Chrome, presses ⌘A then ⌘C, and pastes into a
+new Gmail message. Claude never sends email, never creates drafts, and never
+builds automated sending, even when a mail connector is available. The `.eml`
+file is there only as a manual fallback for Outlook or Apple Mail.
 
 ## Cheat sheets
 

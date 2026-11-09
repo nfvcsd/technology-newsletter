@@ -101,9 +101,9 @@
 {%- endmacro %}
 
 {#- A shortcut with its name and a sentence about it, keys on the left. -#}
-{% macro shortcut(keys, title) -%}
+{% macro shortcut(keys, title, join="or") -%}
 <tr>
-  <td valign="top" width="100" style="width:100px;padding:14px 12px 14px 0;border-top:1px solid {{ GRAY_2 }};font-size:17px;">{{ combos(keys) }}</td>
+  <td valign="top" width="100" style="width:100px;padding:14px 12px 14px 0;border-top:1px solid {{ GRAY_2 }};font-size:17px;">{{ combos(keys, join) }}</td>
   <td valign="top" style="padding:14px 0;border-top:1px solid {{ GRAY_2 }};">
     <p style="margin:0 0 2px;font-family:{{ FONT }};font-size:16px;line-height:1.4;font-weight:700;color:{{ BLACK }};">{{ title }}</p>
     <p style="margin:0;font-family:{{ FONT }};font-size:15px;line-height:1.5;color:{{ BLACK }};">{{ caller() }}</p>
