@@ -1,0 +1,151 @@
+{% extends "email_base.html.j2" %}
+{% import "email_macros.html.j2" as em %}
+{% set sheet = cheatsheets["macos-shortcuts"] %}
+{% set sheet_png = absolute("cheatsheets/" ~ sheet.slug ~ ".png") %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ Hero #}
+{% call em.row("28px 28px 8px") %}
+  {{ em.kicker("Issue " ~ issue.number ~ " · This week's skill") }}
+  {{ em.headline("Show, don't tell.", "Screenshots and screen recordings in one move.", size=28) }}
+  {% call em.paragraph() %}
+    A picture of your screen often explains faster than a paragraph. This week: three ways to take
+    a screenshot, a trick for pasting one straight into an email, and a quick how-to video in
+    under a minute.
+  {% endcall %}
+  {{ em.rule() }}
+{% endcall %}
+
+{# ------------------------------------------------------------------ Snap #}
+{% call em.row("28px 28px 32px") %}
+  {{ em.headline("Snap it.", "Three shortcuts, three sizes.") }}
+  {% call em.paragraph() %}
+    All three start with Shift and Command {{ em.combo("shift cmd") }}. The number you add decides
+    how much of the screen you get.
+  {% endcall %}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    {% call em.shortcut("shift cmd 3", "Whole screen") %}Captures everything on your screen. Good when you're not sure what you'll need.{% endcall %}
+    {% call em.shortcut("shift cmd 4", "Just a part") %}Your pointer turns into crosshairs. Drag across the part you want, then let go.{% endcall %}
+    {% call em.shortcut(["shift cmd 4", "space"], "One window", join="then") %}The pointer turns into a camera. Click any window to capture just that window.{% endcall %}
+  </table>
+  <div style="height:20px;line-height:20px;font-size:20px;">&nbsp;</div>
+  {{ em.image(absolute(gifs["screenshot-area"]), "Animation: Shift Command 4 is pressed, the pointer drags a box across part of a window, and a thumbnail of the screenshot appears in the corner.", href=absolute(issue.filename)) }}
+  {% set step_1 %}Press {{ em.combo("shift cmd 4") }}{% endset %}
+  {{ em.steps([step_1, "Drag across the part you want", "Click the thumbnail to mark it up, or let it save"]) }}
+  <div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>
+  {% call em.paragraph() %}
+    Screenshots save to your desktop as PNG files named "Screenshot" with the date and time.
+    Changed your mind? Press {{ em.combo("esc") }} before you let go.
+  {% endcall %}
+{% endcall %}
+
+{# --------------------------------------------------------- Copy instead #}
+{% call em.row("0 28px 32px") %}
+  {{ em.headline("Skip the desktop.", "Copy it instead.") }}
+  {% call em.paragraph() %}
+    Add Control to any screenshot shortcut and the picture goes to your clipboard instead of your
+    desktop. Then paste it into an email, a Google Doc, or a slide with {{ em.combo("cmd V") }}.
+    Remember that one from last week?
+  {% endcall %}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    {% call em.shortcut("ctrl shift cmd 4", "Copy part of the screen") %}Drag across what you want, then paste it wherever you're working. No file left behind.{% endcall %}
+  </table>
+  <div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>
+  {% call em.paragraph() %}
+    <strong>Or drag the thumbnail.</strong> After any screenshot, drag the little thumbnail from the
+    corner of your screen straight into an email, a document, or a folder.
+  {% endcall %}
+{% endcall %}
+
+{# ---------------------------------------------------------------- Record #}
+{% call em.row("0 28px 32px") %}
+  {{ em.headline("Record it.", "A how-to video in under a minute.") }}
+  {% call em.paragraph() %}
+    Press {{ em.combo("shift cmd 5") }} to open the Screenshot toolbar. The buttons on the left take
+    pictures; the ones with a dot record video. Choose <strong>Record Selected Portion</strong>, drag
+    the box around what you want to show, and click <strong>Record</strong>.
+  {% endcall %}
+  {{ em.image(absolute(gifs["screen-recording"]), "Animation: Shift Command 5 opens the Screenshot toolbar, Record Selected Portion and Record are clicked, and Control Command Escape stops the recording.", href=absolute(issue.filename)) }}
+  {% set rec_step_1 %}Press {{ em.combo("shift cmd 5") }}{% endset %}
+  {% set rec_step_3 %}Show your steps, then press {{ em.combo("ctrl cmd esc") }} to stop{% endset %}
+  {{ em.steps([rec_step_1, "Click Record Selected Portion, then Record", rec_step_3]) }}
+  <div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>
+  {% call em.paragraph() %}
+    You can also stop by clicking the stop button in the menu bar. Recordings save to your desktop
+    as .mov files. Click the thumbnail to trim the start or end.
+  {% endcall %}
+  {% call em.paragraph() %}
+    Want to talk while you record? Click <strong>Options</strong> in the toolbar and pick your
+    microphone before you click Record. Options is also where you change where files save and set
+    a timer.
+  {% endcall %}
+{% endcall %}
+
+{# ------------------------------------------------------------ Callouts #}
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("New on your Mac · macOS Tahoe 26 and later", "Record just one window") %}
+    {% call em.paragraph() %}
+      The toolbar adds <strong>Record Selected Window</strong>, so only the window you pick ends up
+      in the video. Pop-ups and other windows stay out of it. On macOS 27, recordings can also
+      include the sound your Mac plays.
+    {% endcall %}
+    {% call em.paragraph() %}
+      Not sure which macOS you have? Open the Apple menu and choose <strong>About This Mac</strong>.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("Before you share", "Check the edges for student information") %}
+    {% call em.paragraph() %}
+      Screenshots and recordings catch everything on screen. Close your gradebook, email, and any
+      tab with student names or grades first. Turn on Do Not Disturb from
+      <strong>Control Center → Focus</strong> so notifications don't pop up mid-recording. Missed
+      something? Click the thumbnail and crop it out.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("Try it this week", "Make a 30-second how-to") %}
+    {% call em.paragraph() %}
+      Pick one thing students or colleagues ask you about every week, like submitting an assignment
+      or finding a shared folder. Record it with your microphone on, upload the .mov to Google Drive,
+      and share the link. Next time, send the link instead of explaining again.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 40px") %}
+  {% call em.callout("Classroom corner", "3, 4, 5: the bigger the number, the more you get") %}
+    {% call em.paragraph() %}
+      {{ em.combo("3") }} Whole screen <span lang="es" style="color:{{ em.GRAY_9 }};">(pantalla completa)</span><br>
+      {{ em.combo("4") }} Choose a part <span lang="es" style="color:{{ em.GRAY_9 }};">(elegir una parte)</span><br>
+      {{ em.combo("5") }} All the tools <span lang="es" style="color:{{ em.GRAY_9 }};">(todas las herramientas)</span>
+    {% endcall %}
+    {% call em.paragraph() %}
+      All three use {{ em.combo("shift cmd") }}. Students can use a screenshot or a short recording
+      to show their thinking, which lets them explain out loud, replay directions at their own pace,
+      or share work in the language they're most comfortable with. A screenshot is a
+      <em lang="es">captura de pantalla</em>; to record is <em lang="es">grabar</em>.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{# ------------------------------------------------------- Cheat sheet #}
+{% call em.row("0 28px 40px") %}
+  {{ em.rule() }}
+  <div style="height:28px;line-height:28px;font-size:28px;">&nbsp;</div>
+  {{ em.kicker("Keep it handy") }}
+  {{ em.headline("Every screenshot shortcut.", "Already on your cheat sheet.") }}
+  {% call em.paragraph() %}
+    Last week's Mac cheat sheet has all of this week's shortcuts in its Screenshots section. Click
+    the sheet to open the full-size image, then Control-click it and choose Copy Image or Save Image.
+  {% endcall %}
+  {{ em.image(sheet_png, "North Fayette Valley Mac shortcuts cheat sheet. The Screenshots section is in the first column.", href=sheet_png) }}
+  <div style="height:20px;line-height:20px;font-size:20px;">&nbsp;</div>
+  {{ em.button(sheet_png, "Open the full-size cheat sheet") }}
+{% endcall %}
+
+{% endblock %}

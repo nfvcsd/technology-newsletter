@@ -1,0 +1,522 @@
+{% extends "base.html.j2" %}
+{% import "macros.html.j2" as ui %}
+{% set sheet = cheatsheets["macos-shortcuts"] %}
+{% set sheet_png = "cheatsheets/" ~ sheet.slug ~ ".png" %}
+{% set sheet_html = "cheatsheets/" ~ sheet.slug ~ ".html" %}
+
+{% block title %}{{ issue.title }} · {{ site.name }} #{{ issue.number }}{% endblock %}
+
+{% block masthead_meta %}
+<span class="masthead__issue">Issue {{ issue.number }} · {{ issue.published.strftime("%B %-d, %Y") }}</span>
+{% endblock %}
+
+{% block head %}
+<style>
+  /* Demo CSS lives in each issue so building a new issue never changes an old one. */
+
+  /* ---- A tiny Mac desktop: wallpaper, menu bar, window, files ---- */
+  .desk {
+    position: relative;
+    height: 290px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--nfv-light-blue);
+  }
+  .menubar {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.85);
+  }
+  .mini-win {
+    position: absolute;
+    left: 6%;
+    top: 16%;
+    width: 58%;
+    height: 72%;
+    border-radius: 8px;
+    background: var(--nfv-white);
+    box-shadow: 0 1px 2px rgba(5, 28, 44, 0.15), 0 6px 18px rgba(5, 28, 44, 0.12);
+  }
+  .mini-win__bar { display: flex; gap: 5px; padding: 8px 10px; border-bottom: 1px solid var(--nfv-cool-gray-2); }
+  .mini-win__bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--nfv-cool-gray-4); }
+  .mini-win__body { display: grid; grid-template-columns: 1fr 34%; gap: 10px; padding: 14px; }
+  .mini-win__lines { display: grid; gap: 9px; align-content: start; }
+  .mini-win__lines i { display: block; height: 8px; border-radius: 4px; background: var(--nfv-cool-gray-2); }
+  .mini-win__lines i:nth-child(1) { width: 70%; height: 12px; background: var(--nfv-navy); }
+  .mini-win__lines i:nth-child(3) { width: 85%; }
+  .mini-win__lines i:nth-child(4) { width: 60%; }
+  .mini-win__chart { align-self: start; height: 74px; border-radius: 4px; background: linear-gradient(to top, var(--nfv-navy) 0 38%, var(--nfv-light-blue) 38% 70%, var(--nfv-cool-gray-2) 70%); }
+
+  .pointer { position: absolute; width: 22px; height: 22px; pointer-events: none; }
+
+  /* Floating thumbnail in the bottom-right corner, like macOS shows after a capture. */
+  .thumb {
+    position: absolute;
+    right: 3%;
+    bottom: 6%;
+    width: 24%;
+    aspect-ratio: 4 / 3;
+    border: 3px solid var(--nfv-white);
+    border-radius: 6px;
+    background: var(--nfv-white);
+    box-shadow: 0 6px 18px rgba(5, 28, 44, 0.3);
+    transform: translateX(140%);
+  }
+  .thumb__shot { position: absolute; inset: 0; border-radius: 3px; background: var(--nfv-cool-gray-2); overflow: hidden; }
+  .thumb__shot::before { content: ""; position: absolute; left: 10%; top: 18%; width: 55%; height: 12%; border-radius: 3px; background: var(--nfv-navy); }
+  .thumb__shot::after { content: ""; position: absolute; right: 10%; bottom: 14%; width: 22%; height: 50%; border-radius: 3px; background: var(--nfv-light-blue); }
+  .thumb__play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 34%;
+    height: 44%;
+    border-radius: 50%;
+    background: rgba(5, 28, 44, 0.75);
+    display: grid;
+    place-items: center;
+  }
+  .thumb__play::before { content: ""; margin-left: 12%; border-left: 12px solid var(--nfv-white); border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+
+  /* The saved file that lands on the desktop. */
+  .file {
+    position: absolute;
+    right: 5%;
+    top: 14%;
+    width: 22%;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    opacity: 0;
+    text-align: center;
+  }
+  .file__icon { width: 34px; height: 42px; border-radius: 3px; background: var(--nfv-white); box-shadow: 0 1px 3px rgba(5, 28, 44, 0.3); position: relative; }
+  .file__icon::after { content: ""; position: absolute; left: 6px; right: 6px; top: 10px; height: 16px; border-radius: 2px; background: var(--nfv-cool-gray-2); }
+  .file__name { font-size: 0.6875rem; font-weight: 600; line-height: 1.25; color: var(--nfv-black); }
+
+  /* Selection rectangle drawn while dragging */
+  .marquee {
+    position: absolute;
+    border: 2px dashed var(--nfv-navy);
+    background: rgba(0, 47, 109, 0.12);
+  }
+  .crosshair { position: absolute; width: 26px; height: 26px; transform: translate(-50%, -50%); }
+
+  /* White flash at the moment of capture */
+  .flash { position: absolute; inset: 0; background: var(--nfv-white); opacity: 0; pointer-events: none; }
+
+  .demo-keys { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 24px; font-size: 1.5rem; }
+  .demo-keys .key { min-width: 2.2em; height: 2.2em; padding: 0 0.5em; }
+  .demo-keys__gap { width: 1px; height: 2em; margin: 0 10px; background: var(--nfv-cool-gray-4); }
+
+  /* Two cards share the row instead of leaving an empty third column. */
+  .cards--pair { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+
+  /* ---- Demo 1: take a screenshot of an area (10 s loop) ---- */
+  .snap-demo { --dur: 10s; }
+  .snap-demo .marquee { left: 12%; top: 36%; width: 0; height: 0; animation: snap-marquee var(--dur) infinite; }
+  .snap-demo .crosshair { left: 12%; top: 36%; opacity: 0; animation: snap-crosshair var(--dur) infinite; }
+  .snap-demo .flash { animation: snap-flash var(--dur) infinite; }
+  .snap-demo .thumb { animation: snap-thumb var(--dur) infinite; }
+  .snap-demo .file { animation: snap-file var(--dur) infinite; }
+  .snap-demo .press-345 .key { animation: press-snap var(--dur) infinite; }
+  .snap-demo .steps li:nth-child(1) { animation: snap-step-1 var(--dur) infinite; }
+  .snap-demo .steps li:nth-child(2) { animation: snap-step-2 var(--dur) infinite; }
+  .snap-demo .steps li:nth-child(3) { animation: snap-step-3 var(--dur) infinite; }
+
+  @keyframes snap-marquee { 0%, 22% { width: 0; height: 0; opacity: 1; } 40%, 43% { width: 44%; height: 44%; opacity: 1; } 44%, 100% { width: 44%; height: 44%; opacity: 0; } }
+  @keyframes snap-crosshair { 0%, 13% { opacity: 0; left: 12%; top: 36%; } 15%, 22% { opacity: 1; left: 12%; top: 36%; } 40%, 43% { opacity: 1; left: 56%; top: 80%; } 44%, 100% { opacity: 0; left: 56%; top: 80%; } }
+  @keyframes snap-flash { 0%, 43% { opacity: 0; } 44% { opacity: 0.7; } 48%, 100% { opacity: 0; } }
+  @keyframes snap-thumb { 0%, 46% { transform: translateX(140%); } 50%, 80% { transform: none; } 84%, 100% { transform: translateX(140%); } }
+  @keyframes snap-file { 0%, 84% { opacity: 0; } 87%, 97% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes press-snap { 0%, 9%, 19%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 10%, 18% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes snap-step-1 { 0%, 7%, 21%, 100% { background: var(--nfv-white); } 9%, 19% { background: var(--nfv-light-blue); } }
+  @keyframes snap-step-2 { 0%, 21%, 45%, 100% { background: var(--nfv-white); } 23%, 43% { background: var(--nfv-light-blue); } }
+  @keyframes snap-step-3 { 0%, 45%, 96%, 100% { background: var(--nfv-white); } 47%, 94% { background: var(--nfv-light-blue); } }
+
+  /* ---- Demo 2: record part of the screen (12 s loop) ---- */
+  .record-demo { --dur: 12s; }
+  .shot-toolbar {
+    position: absolute;
+    left: 50%;
+    bottom: 5%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 6px;
+    border-radius: 10px;
+    background: var(--nfv-midnight);
+    color: var(--nfv-white);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, 12px);
+    animation: rec-toolbar var(--dur) infinite;
+  }
+  .tb-btn { position: relative; display: grid; place-items: center; width: 28px; height: 26px; border-radius: 6px; }
+  .tb-btn svg { width: 18px; height: 18px; }
+  .tb-sep { width: 1px; height: 18px; margin: 0 2px; background: rgba(255, 255, 255, 0.3); }
+  .tb-text { position: relative; padding: 5px 8px; border-radius: 6px; }
+  .tb-record { background: rgba(255, 255, 255, 0.16); }
+  .record-demo .tb-recportion { animation: rec-pick var(--dur) infinite; }
+  .record-demo .tb-record { animation: rec-go var(--dur) infinite; }
+  .record-demo .tb-recportion .pointer { left: 12px; top: 12px; opacity: 0; animation: rec-pointer-pick var(--dur) infinite; }
+  .record-demo .tb-record .pointer { left: 24px; top: 12px; opacity: 0; animation: rec-pointer-go var(--dur) infinite; }
+
+  .record-demo .marquee { left: 10%; top: 24%; width: 50%; height: 46%; opacity: 0; animation: rec-area var(--dur) infinite; }
+  .record-demo .pointer--demo { left: 20%; top: 40%; opacity: 0; animation: rec-pointer-demo var(--dur) infinite; }
+  .menubar__stop { display: grid; place-items: center; opacity: 0; animation: rec-stop var(--dur) infinite; }
+  .menubar__stop svg { width: 16px; height: 16px; }
+  .record-demo .thumb { animation: rec-thumb var(--dur) infinite; }
+
+  .record-demo .press-start .key { animation: press-start var(--dur) infinite; }
+  .record-demo .press-stop .key { animation: press-stop var(--dur) infinite; }
+  .record-demo .steps li:nth-child(1) { animation: rec-step-1 var(--dur) infinite; }
+  .record-demo .steps li:nth-child(2) { animation: rec-step-2 var(--dur) infinite; }
+  .record-demo .steps li:nth-child(3) { animation: rec-step-3 var(--dur) infinite; }
+
+  @keyframes rec-toolbar { 0%, 13% { opacity: 0; transform: translate(-50%, 12px); } 16%, 40% { opacity: 1; transform: translate(-50%, 0); } 43%, 100% { opacity: 0; transform: translate(-50%, 12px); } }
+  @keyframes rec-area { 0%, 15% { opacity: 0; } 17%, 78% { opacity: 1; } 80%, 100% { opacity: 0; } }
+  @keyframes rec-pick { 0%, 24%, 43%, 100% { background: transparent; color: var(--nfv-white); } 26%, 40% { background: var(--nfv-light-blue); color: var(--nfv-midnight); } }
+  @keyframes rec-go { 0%, 34%, 43%, 100% { background: rgba(255, 255, 255, 0.16); color: var(--nfv-white); } 36%, 40% { background: var(--nfv-light-blue); color: var(--nfv-midnight); } }
+  @keyframes rec-pointer-pick { 0%, 19% { opacity: 0; transform: translate(14px, -18px); } 23%, 28% { opacity: 1; transform: none; } 30%, 100% { opacity: 0; } }
+  @keyframes rec-pointer-go { 0%, 29% { opacity: 0; transform: translate(-30px, 0); } 33%, 39% { opacity: 1; transform: none; } 41%, 100% { opacity: 0; } }
+  @keyframes rec-pointer-demo { 0%, 44% { opacity: 0; left: 20%; top: 40%; } 47% { opacity: 1; left: 20%; top: 40%; } 56% { left: 46%; top: 44%; } 64% { left: 30%; top: 62%; } 72% { left: 50%; top: 66%; opacity: 1; } 75%, 100% { left: 50%; top: 66%; opacity: 0; } }
+  @keyframes rec-stop { 0%, 43% { opacity: 0; } 45%, 81% { opacity: 1; } 83%, 100% { opacity: 0; } }
+  @keyframes rec-thumb { 0%, 83% { transform: translateX(140%); } 87%, 100% { transform: none; } }
+  @keyframes press-start { 0%, 5%, 13%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 6%, 12% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes press-stop { 0%, 75%, 82%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 76%, 81% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes rec-step-1 { 0%, 4%, 20%, 100% { background: var(--nfv-white); } 6%, 18% { background: var(--nfv-light-blue); } }
+  @keyframes rec-step-2 { 0%, 20%, 43%, 100% { background: var(--nfv-white); } 22%, 41% { background: var(--nfv-light-blue); } }
+  @keyframes rec-step-3 { 0%, 43%, 97%, 100% { background: var(--nfv-white); } 45%, 95% { background: var(--nfv-light-blue); } }
+
+  /* ---- Pause button and reduced motion ---- */
+  .motion-paused .demo *,
+  .motion-paused .demo *::before { animation-play-state: paused !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .demo *, .demo *::before { animation: none !important; }
+    .demo__toolbar, .pointer, .crosshair, .menubar__stop { display: none; }
+    .snap-demo .marquee { width: 44%; height: 44%; }
+    .snap-demo .thumb { transform: none; }
+    .record-demo .marquee { opacity: 1; }
+    .record-demo .shot-toolbar { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  @media (max-width: 600px) {
+    .desk { height: 240px; }
+    .demo-keys { font-size: 1.05rem; gap: 6px; }
+    .demo-keys__gap { margin: 0 4px; }
+    .shot-toolbar { font-size: 0.6875rem; gap: 2px; }
+    .tb-btn { width: 24px; }
+  }
+</style>
+{% endblock %}
+
+{% macro pointer(class_="") -%}
+<svg class="pointer {{ class_ }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17l4.6-4.3 3 6.6 3-1.4-3-6.4h6.3z" fill="#231F20" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/></svg>
+{%- endmacro %}
+
+{# The crosshair the pointer turns into after Shift-Command-4. #}
+{% macro crosshair() -%}
+<svg class="crosshair" viewBox="0 0 26 26" aria-hidden="true"><path d="M13 1v24M1 13h24" stroke="#FFFFFF" stroke-width="4"/><path d="M13 1v24M1 13h24" stroke="#231F20" stroke-width="1.5"/></svg>
+{%- endmacro %}
+
+{% macro mini_window() -%}
+<div class="mini-win">
+  <div class="mini-win__bar"><i></i><i></i><i></i></div>
+  <div class="mini-win__body">
+    <div class="mini-win__lines"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="mini-win__chart"></div>
+  </div>
+</div>
+{%- endmacro %}
+
+{# Simple outline icons for the Screenshot toolbar. #}
+{% macro tb_icon(kind) -%}
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+  {%- if kind == "screen" %}<rect x="3" y="5" width="18" height="14" rx="2"/>
+  {%- elif kind == "window" %}<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/>
+  {%- elif kind == "portion" %}<rect x="3" y="5" width="18" height="14" rx="2" stroke-dasharray="3 2.5"/>
+  {%- elif kind == "rec-screen" %}<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>
+  {%- elif kind == "rec-portion" %}<rect x="3" y="5" width="18" height="14" rx="2" stroke-dasharray="3 2.5"/><circle cx="12" cy="12" r="3" fill="currentColor"/>
+  {%- elif kind == "close" %}<path d="M7 7l10 10M17 7L7 17"/>
+  {%- endif %}
+</svg>
+{%- endmacro %}
+
+{% macro pause_button() -%}
+<div class="demo__toolbar"><button type="button" class="motion-toggle" aria-pressed="false">Pause animations</button></div>
+{%- endmacro %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ Hero #}
+<section class="block" style="padding-top: 24px;">
+  <span class="kicker">Issue {{ issue.number }} · This week's skill</span>
+  {{ ui.headline("Show, don't tell.", "Screenshots and screen recordings in one move.", tag="h1", class_="display") }}
+  <p class="lede">
+    A picture of your screen often explains faster than a paragraph. This week: three ways to take
+    a screenshot, a trick for pasting one straight into an email, and a quick how-to video in
+    under a minute.
+  </p>
+  <hr class="rule">
+</section>
+
+{# ------------------------------------------------------------------ Snap #}
+<section class="block">
+  {{ ui.headline("Snap it.", "Three shortcuts, three sizes.") }}
+  <p>
+    All three start with Shift and Command {{ ui.combo("shift cmd") }}. The number you add decides
+    how much of the screen you get.
+  </p>
+
+  <ul class="cards">
+    <li class="card">
+      {{ ui.combos("shift cmd 3") }}
+      <h3>Whole screen</h3>
+      <p>Captures everything on your screen. Good when you're not sure what you'll need.</p>
+    </li>
+    <li class="card">
+      {{ ui.combos("shift cmd 4") }}
+      <h3>Just a part</h3>
+      <p>Your pointer turns into crosshairs. Drag across the part you want, then let go.</p>
+    </li>
+    <li class="card">
+      {{ ui.combos(["shift cmd 4", "space"], join="then") }}
+      <h3>One window</h3>
+      <p>The pointer turns into a camera. Click any window to capture just that window.</p>
+    </li>
+  </ul>
+
+  <figure class="demo snap-demo" data-gif="screenshot-area" data-gif-seconds="10" data-gif-start="0.6">
+    <div class="demo__panel">
+      {{ pause_button() }}
+      <div class="desk" aria-hidden="true">
+        {{ mini_window() }}
+        <div class="marquee"></div>
+        {{ crosshair() }}
+        <div class="flash"></div>
+        <div class="file"><span class="file__icon"></span><span class="file__name">Screenshot<br>9.41 AM.png</span></div>
+        <div class="thumb"><span class="thumb__shot"></span></div>
+      </div>
+      <div class="demo-keys press-345" aria-hidden="true">
+        {{ ui.keycap(parse_combo("shift")[0], show_name=true) }}
+        {{ ui.keycap(parse_combo("cmd")[0], show_name=true) }}
+        {{ ui.keycap(parse_combo("4")[0]) }}
+      </div>
+      <ol class="steps">
+        <li><span>Press {{ ui.combo("shift cmd 4") }}</span></li>
+        <li><span>Drag across the part you want</span></li>
+        <li><span>Click the thumbnail to mark it up, or let it save</span></li>
+      </ol>
+    </div>
+    <figcaption>
+      Screenshots save to your desktop as PNG files named "Screenshot" with the date and time.
+      Changed your mind? Press {{ ui.combo("esc") }} before you let go.
+    </figcaption>
+  </figure>
+</section>
+
+{# --------------------------------------------------------- Copy instead #}
+<section class="block">
+  {{ ui.headline("Skip the desktop.", "Copy it instead.") }}
+  <p>
+    Add Control to any screenshot shortcut and the picture goes to your clipboard instead of your
+    desktop. Then paste it into an email, a Google Doc, or a slide with {{ ui.combo("cmd V") }}.
+    Remember that one from last week?
+  </p>
+  <ul class="cards cards--pair">
+    <li class="card">
+      {{ ui.combos("ctrl shift cmd 4") }}
+      <h3>Copy part of the screen</h3>
+      <p>Drag across what you want, then paste it wherever you're working. No file left behind.</p>
+    </li>
+    <li class="card card--bonus">
+      <h3 style="margin-top: 0;">Or drag the thumbnail</h3>
+      <p>After any screenshot, drag the little thumbnail from the corner of your screen straight into an email, a document, or a folder.</p>
+    </li>
+  </ul>
+</section>
+
+{# ---------------------------------------------------------------- Record #}
+<section class="block">
+  {{ ui.headline("Record it.", "A how-to video in under a minute.") }}
+  <p>
+    Press {{ ui.combo("shift cmd 5") }} to open the Screenshot toolbar. The buttons on the left take
+    pictures; the ones with a dot record video. Choose <b>Record Selected Portion</b>, drag the box
+    around what you want to show, and click <b>Record</b>.
+  </p>
+
+  <figure class="demo record-demo" data-gif="screen-recording" data-gif-seconds="12" data-gif-start="0.9">
+    <div class="demo__panel">
+      {{ pause_button() }}
+      <div class="desk" aria-hidden="true">
+        <div class="menubar">
+          <span class="menubar__stop"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="#231F20" stroke-width="1.5"/><rect x="5" y="5" width="6" height="6" rx="1" fill="#231F20"/></svg></span>
+        </div>
+        {{ mini_window() }}
+        <div class="marquee"></div>
+        {{ pointer("pointer--demo") }}
+        <div class="thumb"><span class="thumb__shot"></span><span class="thumb__play"></span></div>
+        <div class="shot-toolbar">
+          <span class="tb-btn">{{ tb_icon("close") }}</span>
+          <span class="tb-sep"></span>
+          <span class="tb-btn">{{ tb_icon("screen") }}</span>
+          <span class="tb-btn">{{ tb_icon("window") }}</span>
+          <span class="tb-btn">{{ tb_icon("portion") }}</span>
+          <span class="tb-sep"></span>
+          <span class="tb-btn">{{ tb_icon("rec-screen") }}</span>
+          <span class="tb-btn tb-recportion">{{ tb_icon("rec-portion") }}{{ pointer() }}</span>
+          <span class="tb-sep"></span>
+          <span class="tb-text">Options</span>
+          <span class="tb-text tb-record">Record{{ pointer() }}</span>
+        </div>
+      </div>
+      <div class="demo-keys" aria-hidden="true">
+        <span class="press-start">{{ ui.keycap(parse_combo("shift")[0]) }}</span>
+        <span class="press-start">{{ ui.keycap(parse_combo("cmd")[0]) }}</span>
+        <span class="press-start">{{ ui.keycap(parse_combo("5")[0]) }}</span>
+        <span class="demo-keys__gap"></span>
+        <span class="press-stop">{{ ui.keycap(parse_combo("ctrl")[0]) }}</span>
+        <span class="press-stop">{{ ui.keycap(parse_combo("cmd")[0]) }}</span>
+        <span class="press-stop">{{ ui.keycap(parse_combo("esc")[0]) }}</span>
+      </div>
+      <ol class="steps">
+        <li><span>Press {{ ui.combo("shift cmd 5") }}</span></li>
+        <li><span>Click Record Selected Portion, then Record</span></li>
+        <li><span>Show your steps, then press {{ ui.combo("ctrl cmd esc") }} to stop</span></li>
+      </ol>
+    </div>
+    <figcaption>
+      You can also stop by clicking the stop button in the menu bar. Recordings save to your desktop
+      as .mov files. Click the thumbnail to trim the start or end.
+    </figcaption>
+  </figure>
+
+  <p>
+    Want to talk while you record? Click <b>Options</b> in the toolbar and pick your microphone
+    before you click Record. Options is also where you change where files save and set a timer.
+  </p>
+
+  <aside class="callout">
+    <span class="kicker">New on your Mac · macOS Tahoe 26 and later</span>
+    <h3>Record just one window</h3>
+    <p>
+      The toolbar adds <b>Record Selected Window</b>, so only the window you pick ends up in the
+      video. Pop-ups and other windows stay out of it. On macOS 27, recordings can also include the
+      sound your Mac plays.
+    </p>
+    <p>Not sure which macOS you have? Open the Apple menu and choose <b>About This Mac</b>.</p>
+  </aside>
+
+  <aside class="callout">
+    <span class="kicker">Before you share</span>
+    <h3>Check the edges for student information</h3>
+    <p>
+      Screenshots and recordings catch everything on screen. Close your gradebook, email, and any
+      tab with student names or grades first. Turn on Do Not Disturb from <b>Control Center → Focus</b>
+      so notifications don't pop up mid-recording. Missed something? Click the thumbnail and crop it out.
+    </p>
+  </aside>
+
+  <div class="two-up">
+    <aside class="callout">
+      <span class="kicker">Try it this week</span>
+      <h3>Make a 30-second how-to</h3>
+      <p>
+        Pick one thing students or colleagues ask you about every week, like submitting an
+        assignment or finding a shared folder. Record it with your microphone on, upload the .mov
+        to Google Drive, and share the link. Next time, send the link instead of explaining again.
+      </p>
+    </aside>
+    <aside class="callout">
+      <span class="kicker">Classroom corner</span>
+      <h3>3, 4, 5: the bigger the number, the more you get</h3>
+      <div class="key-row">
+        {% for number, word, spanish in [("3", "Whole screen", "Pantalla completa"), ("4", "Choose a part", "Elegir una parte"), ("5", "All the tools", "Todas las herramientas")] %}
+        <figure>
+          {{ ui.keycap(parse_combo(number)[0]) }}
+          <figcaption>{{ word }}<span lang="es">{{ spanish }}</span></figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      <p>
+        All three use {{ ui.combo("shift cmd") }}. Students can use a screenshot or a short
+        recording to show their thinking, which lets them explain out loud, replay directions at
+        their own pace, or share work in the language they're most comfortable with. A screenshot
+        is a <span lang="es"><i>captura de pantalla</i></span>; to record is <span lang="es"><i>grabar</i></span>.
+      </p>
+    </aside>
+  </div>
+</section>
+
+{% endblock %}
+
+{# Cheat sheet reminder, edge to edge like Issue 1. #}
+{% block after_main %}
+<section class="cheatsheet-band" aria-labelledby="cheatsheet-heading">
+  <div>
+    <span class="kicker">Keep it handy</span>
+    <h2 id="cheatsheet-heading" class="nfv-headline"><b>Every screenshot shortcut.</b> Already on your cheat sheet.</h2>
+    <p>
+      Last week's Mac cheat sheet has all of this week's shortcuts in its Screenshots section. Missed
+      it? Copy or download it here.
+    </p>
+    <hr class="rule">
+
+    <figure class="cheatsheet-figure">
+      <a href="{{ sheet_png }}">
+        <img src="{{ sheet_png }}" width="{{ sheet.width }}" height="{{ sheet.height }}"
+             alt="North Fayette Valley Mac shortcuts cheat sheet. The Screenshots section is in the first column. A text version is linked below.">
+      </a>
+    </figure>
+
+    <div class="actions">
+      <button type="button" class="button" id="copy-sheet" data-src="{{ sheet_png }}">Copy image</button>
+      <a class="button button--secondary" href="{{ sheet_png }}" download="NFV-Mac-shortcuts.png">Download PNG</a>
+      <a class="button button--secondary" href="{{ sheet_html }}">Text version</a>
+      <span class="status" id="copy-status" role="status"></span>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Pause / play every demo on the page (WCAG 2.2.2: moving content can be paused).
+  const motionToggles = document.querySelectorAll(".motion-toggle");
+  function setMotionPaused(paused) {
+    document.body.classList.toggle("motion-paused", paused);
+    motionToggles.forEach((button) => {
+      button.setAttribute("aria-pressed", String(paused));
+      button.textContent = paused ? "Play animations" : "Pause animations";
+    });
+  }
+  motionToggles.forEach((button) =>
+    button.addEventListener("click", () =>
+      setMotionPaused(!document.body.classList.contains("motion-paused"))
+    )
+  );
+
+  // Copy the cheat sheet PNG to the clipboard so staff can paste it anywhere.
+  const copyButton = document.getElementById("copy-sheet");
+  const copyStatus = document.getElementById("copy-status");
+  copyButton.addEventListener("click", async () => {
+    try {
+      // Safari needs the ClipboardItem to receive a promise, not a finished blob.
+      const png = fetch(copyButton.dataset.src).then((response) => response.blob());
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
+      copyStatus.textContent = "Copied! Paste it anywhere with Command-V.";
+    } catch (error) {
+      copyStatus.textContent = "Your browser blocked copying. Control-click the image and choose Copy Image.";
+    }
+  });
+</script>
+{% endblock %}
