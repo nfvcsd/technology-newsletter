@@ -1,0 +1,106 @@
+{% extends "email_base.html.j2" %}
+{% import "email_macros.html.j2" as em %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ Hero #}
+{% call em.row("28px 28px 8px") %}
+  {{ em.kicker("Issue " ~ issue.number ~ " · This week's skill") }}
+  {{ em.headline("Text in a picture?", "Copy it like any other text.", size=28) }}
+  {% call em.paragraph() %}
+    Last week you took screenshots. This week, pull the words out of them. Live Text lets you
+    select, copy, and translate the text in photos, screenshots, and scanned handouts, so you never
+    have to retype it.
+  {% endcall %}
+  {{ em.rule() }}
+{% endcall %}
+
+{# ------------------------------------------------------------------ Copy #}
+{% call em.row("28px 28px 32px") %}
+  {{ em.headline("Point, drag, copy.", "It works like a document.") }}
+  {% call em.paragraph() %}
+    Open a photo or screenshot in Preview or Photos. Hold the pointer over the words, then drag
+    across them to select, just like text in a document. Copy with {{ em.combo("cmd C") }} and paste
+    anywhere with {{ em.combo("cmd V") }}.
+  {% endcall %}
+  {{ em.image(absolute(gifs["copy-text-from-photo"]), "Animation: three lines of a photographed lab safety handout are selected, Command C copies them, and Command V pastes them into a document as editable text.", href=absolute(issue.filename)) }}
+  {% set step_2 %}Press {{ em.combo("cmd C") }} to copy{% endset %}
+  {% set step_3 %}Click in your document and press {{ em.combo("cmd V") }}{% endset %}
+  {{ em.steps(["Drag across the words in the picture", step_2, step_3]) }}
+  <div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>
+  {% call em.paragraph() %}
+    The words paste in as real text you can edit, format, and spell-check. No retyping.
+  {% endcall %}
+{% endcall %}
+
+{# ------------------------------------------------------------- Do more #}
+{% call em.row("0 28px 32px") %}
+  {{ em.headline("Do more than copy.", "Control-click the words.") }}
+  {% call em.paragraph() %}
+    Select some text in a picture, then Control-click it (or click with two fingers on a trackpad).
+    The menu has more than Copy Text:
+  {% endcall %}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    {% call em.item("Translate") %}Choose Translate, then pick a language. Handy for a flyer, a sign, or a note written in another language.{% endcall %}
+    {% call em.item("Look up") %}Choose Look Up to see a definition or more information about a word or name.{% endcall %}
+    {% call em.item("Call, email, or open") %}Phone numbers, email addresses, and web addresses get a small arrow. Click it to call, write an email, or open the link.{% endcall %}
+  </table>
+  <div style="height:20px;line-height:20px;font-size:20px;">&nbsp;</div>
+  {{ em.image(absolute(gifs["translate-text"]), "Animation: Spanish text on a photographed flyer is selected, Control-click opens a menu, Translate is chosen, and the English translation appears: Thursday, 3:30 p.m., School library.", href=absolute(issue.filename)) }}
+  {% set tr_step_2 %}Hold {{ em.combo("ctrl") }} and click, then choose Translate{% endset %}
+  {{ em.steps(["Select the words", tr_step_2, "Read the translation and pick another language if you need one"]) }}
+  <div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>
+  {% call em.paragraph() %}
+    Translation is great for getting the gist. For important messages to families, have a fluent
+    speaker check the wording before you send it.
+  {% endcall %}
+{% endcall %}
+
+{# ------------------------------------------------------------ Callouts #}
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("Not working?", "Two settings to check") %}
+    {% call em.paragraph() %}
+      In Preview, choose <strong>Tools → Text Selection</strong>. If you still can't select the
+      words, open <strong>System Settings → General → Language &amp; Region</strong> and turn on
+      <strong>Live Text</strong>. Live Text doesn't recognize every language yet, so some text may
+      not be selectable.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("Before you share", "Copied text is still student data") %}
+    {% call em.paragraph() %}
+      Text pulled from a photo of a sign-in sheet, a roster, or student work carries the same
+      privacy rules as the original. Paste it only where you'd store the original, and leave names
+      out of anything you share widely.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 16px") %}
+  {% call em.callout("Try it this week", "Rescue a printed handout") %}
+    {% call em.paragraph() %}
+      Have a handout with no digital copy? Snap a photo of it with your iPhone, AirDrop it to your
+      Mac, open it in Preview, and copy the text into a new document. Five minutes instead of twenty
+      spent retyping.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% call em.row("0 28px 40px") %}
+  {% call em.callout("Classroom corner", "Turn any page into text students can use") %}
+    {% call em.paragraph() %}
+      Copy text <span lang="es" style="color:{{ em.GRAY_9 }};">(copiar texto)</span> &nbsp;·&nbsp;
+      Translate <span lang="es" style="color:{{ em.GRAY_9 }};">(traducir)</span> &nbsp;·&nbsp;
+      Picture <span lang="es" style="color:{{ em.GRAY_9 }};">(imagen)</span>
+    {% endcall %}
+    {% call em.paragraph() %}
+      Once words from a printed page are real text, students can hear them read aloud with
+      text-to-speech, enlarge them, or translate them into the language they know best. Every
+      student gets to use the tools that help them read.
+    {% endcall %}
+  {% endcall %}
+{% endcall %}
+
+{% endblock %}
