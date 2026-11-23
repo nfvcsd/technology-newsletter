@@ -111,10 +111,11 @@
 </tr>
 {%- endmacro %}
 
-{#- A titled row with a sentence about it, for lists that have no keys. -#}
+{#- A titled row with a sentence about it, for lists that have no keys.
+    colspan lets it sit in the same table as em.shortcut rows. -#}
 {% macro item(title) -%}
 <tr>
-  <td style="padding:14px 0;border-top:1px solid {{ GRAY_2 }};">
+  <td colspan="2" style="padding:14px 0;border-top:1px solid {{ GRAY_2 }};">
     <p style="margin:0 0 2px;font-family:{{ FONT }};font-size:16px;line-height:1.4;font-weight:700;color:{{ BLACK }};">{{ title }}</p>
     <p style="margin:0;font-family:{{ FONT }};font-size:15px;line-height:1.5;color:{{ BLACK }};">{{ caller() }}</p>
   </td>

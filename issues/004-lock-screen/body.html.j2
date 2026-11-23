@@ -1,0 +1,317 @@
+{% extends "base.html.j2" %}
+{% import "macros.html.j2" as ui %}
+{% set sheet = cheatsheets["macos-shortcuts"] %}
+{% set sheet_png = "cheatsheets/" ~ sheet.slug ~ ".png" %}
+
+{% block title %}{{ issue.title }} · {{ site.name }} #{{ issue.number }}{% endblock %}
+
+{% block masthead_meta %}
+<span class="masthead__issue">Issue {{ issue.number }} · {{ issue.published.strftime("%B %-d, %Y") }}</span>
+{% endblock %}
+
+{% block head %}
+<style>
+  /* Demo CSS lives in each issue so building a new issue never changes an old one. */
+
+  /* ---- A tiny Mac desktop: wallpaper, menu bar, window ---- */
+  .desk {
+    position: relative;
+    height: 290px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--nfv-light-blue);
+  }
+  .menubar { position: absolute; inset: 0 0 auto; height: 24px; background: rgba(255, 255, 255, 0.85); }
+  .mini-win {
+    position: absolute;
+    left: 8%;
+    top: 18%;
+    width: 62%;
+    height: 70%;
+    border-radius: 8px;
+    background: var(--nfv-white);
+    box-shadow: 0 1px 2px rgba(5, 28, 44, 0.15), 0 6px 18px rgba(5, 28, 44, 0.12);
+  }
+  .mini-win__bar { display: flex; gap: 5px; padding: 8px 10px; border-bottom: 1px solid var(--nfv-cool-gray-2); }
+  .mini-win__bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--nfv-cool-gray-4); }
+  /* A gradebook-like grid: rows of blank cells, no real names or scores. */
+  .mini-win__grid { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 6px; padding: 12px; }
+  .mini-win__grid i { height: 10px; border-radius: 3px; background: var(--nfv-cool-gray-2); }
+  .mini-win__grid i:nth-child(-n+5) { background: var(--nfv-navy); }
+
+  .pointer { position: absolute; width: 22px; height: 22px; pointer-events: none; }
+
+  /* The lock screen that covers everything */
+  .lockscreen {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 10px;
+    background: var(--nfv-midnight);
+    color: var(--nfv-white);
+    opacity: 0;
+  }
+  .lockscreen__time { font-size: 2.75rem; font-weight: 700; line-height: 1; letter-spacing: -0.01em; }
+  .lockscreen__avatar { width: 40px; height: 40px; margin-top: 12px; border-radius: 50%; background: var(--nfv-light-blue); }
+  /* Label and dots share one spot; the label fades as the dots appear. */
+  .lockscreen__field {
+    display: grid;
+    align-items: center;
+    justify-items: start;
+    min-width: 150px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .lockscreen__field > * { grid-area: 1 / 1; }
+  .lockscreen__dots { display: inline-block; overflow: hidden; white-space: nowrap; letter-spacing: 2px; font-size: 1rem; }
+
+  .demo-keys { display: flex; justify-content: center; gap: 14px; margin-top: 24px; font-size: 1.5rem; }
+  .demo-keys .key { min-width: 2.2em; height: 2.2em; padding: 0 0.5em; }
+
+  /* ---- Demo 1: lock with the keyboard (8 s loop) ---- */
+  .lock-demo { --dur: 8s; }
+  .lock-demo .lockscreen { animation: lock-screen var(--dur) infinite; }
+  .lock-demo .lockscreen__label { animation: lock-label var(--dur) infinite; }
+  .lock-demo .lockscreen__dots { width: 0; animation: lock-dots var(--dur) infinite; }
+  .corner-demo .lockscreen__dots { width: 0; }
+  .lock-demo .press-lock .key { animation: lock-press var(--dur) infinite; }
+  .lock-demo .steps li:nth-child(1) { animation: lock-step-1 var(--dur) infinite; }
+  .lock-demo .steps li:nth-child(2) { animation: lock-step-2 var(--dur) infinite; }
+  .lock-demo .steps li:nth-child(3) { animation: lock-step-3 var(--dur) infinite; }
+
+  @keyframes lock-screen { 0%, 18% { opacity: 0; } 22%, 84% { opacity: 1; } 88%, 100% { opacity: 0; } }
+  @keyframes lock-label { 0%, 68% { opacity: 1; } 69%, 100% { opacity: 0; } }
+  @keyframes lock-dots { 0%, 69% { width: 0; animation-timing-function: steps(5, end); } 80%, 100% { width: 5.2em; } }
+  @keyframes lock-press { 0%, 9%, 17%, 100% { transform: none; background: var(--nfv-navy); color: var(--nfv-white); } 10%, 16% { transform: translateY(0.12em); background: var(--nfv-light-blue); color: var(--nfv-midnight); box-shadow: none; } }
+  @keyframes lock-step-1 { 0%, 7%, 20%, 100% { background: var(--nfv-white); } 9%, 18% { background: var(--nfv-light-blue); } }
+  @keyframes lock-step-2 { 0%, 20%, 68%, 100% { background: var(--nfv-white); } 22%, 66% { background: var(--nfv-light-blue); } }
+  @keyframes lock-step-3 { 0%, 68%, 92%, 100% { background: var(--nfv-white); } 70%, 90% { background: var(--nfv-light-blue); } }
+
+  /* ---- Demo 2: flick the pointer into a Hot Corner (8 s loop) ---- */
+  .corner-demo { --dur: 8s; }
+  .corner-demo .pointer--flick { left: 42%; top: 60%; animation: corner-pointer var(--dur) infinite; }
+  .corner-demo .corner-glow {
+    position: absolute;
+    right: -40px;
+    top: -40px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--nfv-white);
+    opacity: 0;
+    animation: corner-glow var(--dur) infinite;
+  }
+  .corner-demo .lockscreen { animation: corner-lock var(--dur) infinite; }
+  .corner-demo .steps li:nth-child(1) { animation: corner-step-1 var(--dur) infinite; }
+  .corner-demo .steps li:nth-child(2) { animation: corner-step-2 var(--dur) infinite; }
+  .corner-demo .steps li:nth-child(3) { animation: corner-step-3 var(--dur) infinite; }
+
+  @keyframes corner-pointer { 0%, 14% { left: 42%; top: 60%; opacity: 1; } 24%, 30% { left: calc(100% - 14px); top: 2px; opacity: 1; } 32%, 92% { left: calc(100% - 14px); top: 2px; opacity: 0; } 96%, 100% { left: 42%; top: 60%; opacity: 0; } }
+  @keyframes corner-glow { 0%, 23% { opacity: 0; transform: scale(0.6); } 26% { opacity: 0.85; transform: scale(1); } 32%, 100% { opacity: 0; transform: scale(1.2); } }
+  @keyframes corner-lock { 0%, 28% { opacity: 0; } 32%, 86% { opacity: 1; } 90%, 100% { opacity: 0; } }
+  @keyframes corner-step-1 { 0%, 1%, 13%, 100% { background: var(--nfv-white); } 3%, 11% { background: var(--nfv-light-blue); } }
+  @keyframes corner-step-2 { 0%, 13%, 29%, 100% { background: var(--nfv-white); } 15%, 27% { background: var(--nfv-light-blue); } }
+  @keyframes corner-step-3 { 0%, 29%, 88%, 100% { background: var(--nfv-white); } 31%, 86% { background: var(--nfv-light-blue); } }
+
+  /* ---- Pause button and reduced motion ---- */
+  .motion-paused .demo *,
+  .motion-paused .demo *::before { animation-play-state: paused !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .demo *, .demo *::before { animation: none !important; }
+    .demo__toolbar, .pointer, .corner-glow { display: none; }
+    .lockscreen { opacity: 1; }
+  }
+
+  @media (max-width: 600px) {
+    .desk { height: 240px; }
+    .demo-keys { font-size: 1.25rem; }
+  }
+</style>
+{% endblock %}
+
+{% macro pointer(class_="") -%}
+<svg class="pointer {{ class_ }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17l4.6-4.3 3 6.6 3-1.4-3-6.4h6.3z" fill="#231F20" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/></svg>
+{%- endmacro %}
+
+{# Desktop with an open gradebook-style window and the lock screen ready to cover it. #}
+{% macro desk() -%}
+<div class="desk" aria-hidden="true">
+  <div class="menubar"></div>
+  <div class="mini-win">
+    <div class="mini-win__bar"><i></i><i></i><i></i></div>
+    <div class="mini-win__grid">{% for _ in range(30) %}<i></i>{% endfor %}</div>
+  </div>
+  {{ caller() }}
+  <div class="lockscreen">
+    <span class="lockscreen__time">8:15</span>
+    <span class="lockscreen__avatar"></span>
+    <span class="lockscreen__field"><span class="lockscreen__label">Enter Password</span><span class="lockscreen__dots">•••••</span></span>
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro pause_button() -%}
+<div class="demo__toolbar"><button type="button" class="motion-toggle" aria-pressed="false">Pause animations</button></div>
+{%- endmacro %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ Hero #}
+<section class="block" style="padding-top: 24px;">
+  <span class="kicker">Issue {{ issue.number }} · This week's skill</span>
+  {{ ui.headline("Stepping away?", "Lock it first.", tag="h1", class_="display") }}
+  <p class="lede">
+    A quick one for a short week. Locking your Mac takes one second and keeps student information
+    private while you're away from your desk, whether that's five minutes or five days.
+  </p>
+  <hr class="rule">
+</section>
+
+{# ------------------------------------------------------------------ Lock #}
+<section class="block">
+  {{ ui.headline("One move.", "Three ways to lock.") }}
+  <ul class="cards">
+    <li class="card">
+      <h3 style="margin-top: 0;">Keyboard</h3>
+      <p>Press {{ ui.combo("ctrl cmd Q") }}. The fastest way: your screen locks the moment you press it.</p>
+    </li>
+    <li class="card">
+      <h3 style="margin-top: 0;">Apple menu</h3>
+      <p>Click the Apple menu in the top-left corner of your screen, then choose <b>Lock Screen</b>.</p>
+    </li>
+    <li class="card">
+      <h3 style="margin-top: 0;">Touch ID</h3>
+      <p>If your Mac or keyboard has Touch ID, press it once to lock. Some Magic Keyboards also have a Lock Screen key.</p>
+    </li>
+  </ul>
+
+  <figure class="demo lock-demo" data-gif="lock-screen" data-gif-seconds="8" data-gif-start="0.4">
+    <div class="demo__panel">
+      {{ pause_button() }}
+      {% call desk() %}{% endcall %}
+      <div class="demo-keys press-lock" aria-hidden="true">
+        {{ ui.keycap(parse_combo("ctrl")[0], show_name=true) }}
+        {{ ui.keycap(parse_combo("cmd")[0], show_name=true) }}
+        {{ ui.keycap(parse_combo("Q")[0]) }}
+      </div>
+      <ol class="steps">
+        <li><span>Press {{ ui.combo("ctrl cmd Q") }}</span></li>
+        <li><span>Your screen locks and your work is hidden</span></li>
+        <li><span>Back? Press any key and type your password, or use Touch ID</span></li>
+      </ol>
+    </div>
+    <figcaption>
+      Locking keeps everything open just as you left it. Nothing closes, and nothing is lost.
+    </figcaption>
+  </figure>
+</section>
+
+{# ----------------------------------------------------------- Hot Corner #}
+<section class="block">
+  {{ ui.headline("Even faster.", "Flick to a corner.") }}
+  <p>
+    A Hot Corner locks your Mac when you push the pointer into a corner of the screen. Set it up once:
+  </p>
+  <ol class="uses">
+    <li>Open <b>System Settings</b> and click <b>Desktop &amp; Dock</b>.</li>
+    <li>Scroll down and click <b>Hot Corners</b>.</li>
+    <li>Pick a corner you don't use much, choose <b>Lock Screen</b> from its menu, and click <b>Done</b>.</li>
+  </ol>
+
+  <figure class="demo corner-demo" data-gif="hot-corner" data-gif-seconds="8" data-gif-start="0.5">
+    <div class="demo__panel">
+      {{ pause_button() }}
+      {% call desk() %}
+        <span class="corner-glow"></span>
+        {{ pointer("pointer--flick") }}
+      {% endcall %}
+      <ol class="steps">
+        <li><span>Set a corner to Lock Screen (one time)</span></li>
+        <li><span>Flick the pointer into that corner</span></li>
+        <li><span>Your screen locks</span></li>
+      </ol>
+    </div>
+    <figcaption>
+      Locking by accident? Hold {{ ui.combo("cmd") }} while you choose Lock Screen in the Hot Corners
+      menu. Then the corner works only while you hold Command.
+    </figcaption>
+  </figure>
+
+  <aside class="callout">
+    <span class="kicker">Set it and forget it</span>
+    <h3>Let your Mac lock itself</h3>
+    <p>
+      Open <b>System Settings → Lock Screen</b> and set <b>Require password after screen saver begins
+      or display is turned off</b> to a short time. If you forget to lock, your Mac locks itself soon
+      after the screen goes dark.
+    </p>
+  </aside>
+
+  <aside class="callout">
+    <span class="kicker">Before break</span>
+    <h3>A 30-second checklist</h3>
+    <p>
+      Save and close anything with student information. If someone else uses your Mac, log out with
+      {{ ui.combo("shift cmd Q") }} instead of locking. Then lock your screen and enjoy the time off.
+    </p>
+  </aside>
+
+  <div class="two-up">
+    <aside class="callout">
+      <span class="kicker">Try it this week</span>
+      <h3>Make it a habit before break</h3>
+      <p>
+        Set up a Hot Corner today, then lock your Mac every time you leave the room this week. By
+        Wednesday, you'll do it without thinking.
+      </p>
+    </aside>
+    <aside class="callout">
+      <span class="kicker">Classroom corner</span>
+      <h3>"Lock it when you leave it"</h3>
+      <div class="key-row">
+        {% for word, spanish in [("Lock", "Bloquear"), ("Password", "Contraseña"), ("Screen", "Pantalla")] %}
+        <figure>
+          <figcaption>{{ word }}<span lang="es">{{ spanish }}</span></figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      <p>
+        Students take care of shared devices too. Teach the rhyme, practice
+        {{ ui.combo("ctrl cmd Q") }} once together, and let students remind each other.
+      </p>
+    </aside>
+  </div>
+
+  <p>
+    {{ ui.combo("ctrl cmd Q") }} is also on the <a href="{{ sheet_png }}">Mac cheat sheet from Issue 1</a>,
+    in the Apps and windows section.
+  </p>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Pause / play every demo on the page (WCAG 2.2.2: moving content can be paused).
+  const motionToggles = document.querySelectorAll(".motion-toggle");
+  function setMotionPaused(paused) {
+    document.body.classList.toggle("motion-paused", paused);
+    motionToggles.forEach((button) => {
+      button.setAttribute("aria-pressed", String(paused));
+      button.textContent = paused ? "Play animations" : "Pause animations";
+    });
+  }
+  motionToggles.forEach((button) =>
+    button.addEventListener("click", () =>
+      setMotionPaused(!document.body.classList.contains("motion-paused"))
+    )
+  );
+</script>
+{% endblock %}
