@@ -38,10 +38,12 @@ python build.py --base-url URL   # override base_url, e.g. file://$PWD/site/ to 
 1. Copies `brand/fonts`, `brand/logos`, and `styles/*.css` into `site/assets/`.
 2. Renders each `cheatsheets/*.yaml` with `templates/cheatsheet.html.j2` into
    `site/cheatsheets/<name>.html`.
-3. For each `issues/NNN-slug/`: renders `body.html.j2` into `site/<slug>.html`.
+3. For each `issues/NNN-slug/`: checks its `tags` against `tags.yaml`, then
+   renders `body.html.j2` into `site/<slug>.html`.
    If `email.html.j2` exists, it also renders `site/email/<slug>.html` and an
    `.eml` draft (`X-Unsent: 1` makes Outlook open it as a new message).
-4. Renders `site/index.html` (the archive).
+4. Renders `site/index.html` (the archive), with a search index embedded as
+   JSON: each issue's title, summary, tag slugs and labels, and page text.
 5. Unless `--skip-images`: `render.py` screenshots each cheat sheet to PNG, and
    records every `[data-gif]` demo on each issue page to
    `site/media/<slug>/<name>.gif`.
@@ -53,6 +55,13 @@ Modules:
   multi-character token raises `ValueError`, so typos fail the build.
 - `render.py` does all the headless-browser work. Playwright and Pillow are
   imported lazily so `--skip-images` works without them.
+- `search.py` pulls the readable text out of an issue's `<main>` for the search
+  index. It skips scripts, styles, SVG icons, and buttons (the "Pause
+  animations" text would otherwise match every issue), but keeps
+  screen-reader-only key names, so "command q" finds ⌃⌘Q.
+- `tags.yaml` is the controlled list of categories. An issue with no tags or
+  an unknown tag fails the build. Base templates show an issue's tags as
+  "Filed under" links to `index.html?tag=<slug>`.
 - Jinja runs with `StrictUndefined`. Any missing variable is an error.
 
 ## Adding a weekly issue
@@ -60,7 +69,9 @@ Modules:
 1. Check `claude/issue-log.md` in the project for past topics.
 2. Copy `issues/001-quick-keys/` to `issues/NNN-short-slug/`. Edit
    `issue.yaml`: `number`, `title`, `published` (the Monday it goes out),
-   `summary` (used as the email preview text), and `cheatsheets`.
+   `summary` (used as the email preview text and in archive search), `tags`
+   (one to three slugs from `tags.yaml`), and `cheatsheets`. Add a new tag to
+   `tags.yaml` only when it will fit several issues.
 3. Write `body.html.j2` (web) and then `email.html.j2` (email), with the same
    words in both. The email is not generated from the web page; keep them in
    sync by hand.

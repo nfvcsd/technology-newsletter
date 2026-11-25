@@ -24,9 +24,10 @@ open site/index.html
 
 ```
 newsletter.yaml          site name, tagline, contact, public base_url
+tags.yaml                the category tags issues can use
 issues/
   001-quick-keys/
-    issue.yaml           number, title, date, summary, cheat sheets used
+    issue.yaml           number, title, date, summary, tags, cheat sheets used
     body.html.j2         the issue itself, including its CSS animations
     email.html.j2        the email version of the issue
 cheatsheets/
@@ -35,7 +36,7 @@ templates/
   base.html.j2           page shell: masthead, footer
   macros.html.j2         keycaps, combos, brand headline
   cheatsheet.html.j2     cheat sheet layout (US Letter, 300 dpi PNG)
-  index.html.j2          archive page
+  index.html.j2          archive page, with search and tag filters
   email_base.html.j2     email shell: masthead, footer, 600px table
   email_macros.html.j2   email building blocks, all inline styles
 styles/
@@ -47,6 +48,7 @@ brand/
   logos/                 official NFV logo files
 keys.py                  turns "cmd shift 4" into keycaps
 render.py                headless browser: cheat sheet PNGs and demo GIFs
+search.py                pulls the readable text out of each issue for search
 build.py                 the build
 ```
 
@@ -69,10 +71,32 @@ build with an error, so typos can't slip through.
 Modifier symbols are drawn as SVG icons rather than font characters, because
 Open Sans doesn't include them. That keeps the PNG identical on every machine.
 
+## Tags and search
+
+Every issue has one or more category tags in its `issue.yaml`:
+
+```yaml
+tags: [privacy, shortcuts]
+```
+
+The tags themselves live in `tags.yaml`, each with the label readers see. The
+build stops with an error if an issue has no tags or uses one that isn't in
+`tags.yaml`, so a typo can't create a stray category. To add a category, add it
+to `tags.yaml` first; it shows up as a filter button once an issue uses it.
+
+The archive page (`index.html`) has a search box and a button for each tag.
+Search runs in the browser from a small index the build writes into the page:
+each issue's title, summary, tags, and the text of its page. Every word typed
+has to start a word in the issue, and accents don't matter, so `contrasena`
+finds `contraseña`. The search and tag are kept in the address bar, so a link
+like `index.html?tag=privacy` opens the archive already filtered. Each issue
+page ends with "Filed under" tag links that open those filtered views. Without
+JavaScript, the archive simply lists every issue.
+
 ## Adding an issue
 
 1. Copy `issues/001-quick-keys/` to `issues/002-your-topic/`.
-2. Edit `issue.yaml` (bump `number`, set `published`).
+2. Edit `issue.yaml` (bump `number`, set `published`, pick `tags`).
 3. Rewrite `body.html.j2`. Keep the `{% extends "base.html.j2" %}` line and the
    pause-button script if the issue has animations. Give each animated demo
    `data-gif`, `data-gif-seconds`, and `data-gif-start` attributes so the build

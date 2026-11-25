@@ -1,0 +1,21 @@
+# Category tags for issues.
+#
+# Each issue lists one or more of these slugs under `tags:` in its issue.yaml.
+# The build stops with an error if an issue uses a slug that isn't listed here,
+# so a typo can't quietly create a new category.
+#
+# The order here is the order the filter buttons appear on the archive page.
+# Keep the list short: a tag earns its place when it fits several issues.
+
+shortcuts:
+  label: Keyboard shortcuts
+text:
+  label: Working with text
+screenshots:
+  label: Screenshots & video
+windows:
+  label: Windows & apps
+privacy:
+  label: Privacy & security
+access:
+  label: Accessibility & language

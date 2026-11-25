@@ -241,12 +241,85 @@ p .key, .steps .key { font-size: 0.78em; }
 /* ---------- Archive ---------- */
 
 .archive { list-style: none; padding: 0; margin: 24px 0 64px; }
-.archive li { border-bottom: 1px solid var(--nfv-cool-gray-4); }
-.archive a { display: block; padding: 20px 0; text-decoration: none; color: var(--nfv-black); }
-.archive a:hover .archive__title { color: var(--nfv-navy); text-decoration: underline; }
+/* Child combinator so the rule skips the tag list's own <li> items. */
+.archive > li { padding: 20px 0; border-bottom: 1px solid var(--nfv-cool-gray-4); }
+.archive__link { display: block; text-decoration: none; color: var(--nfv-black); }
+.archive__link:hover .archive__title { color: var(--nfv-navy); text-decoration: underline; }
+.archive .tag-list { margin-top: 10px; }
 .archive__meta { display: block; font-size: 0.875rem; color: var(--nfv-cool-gray-9); }
 .archive__title { display: block; font-size: 1.4rem; font-weight: 800; }
 .archive__summary { display: block; }
+
+/* ---------- Search and tags ---------- */
+
+/* Elements with the hidden attribute stay hidden even when a rule sets display. */
+[hidden] { display: none !important; }
+
+.search { display: grid; gap: 14px; margin-top: 32px; }
+.search__label { font-size: 0.8125rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nfv-cool-gray-9); }
+.search__input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--nfv-cool-gray-4);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 1.125rem;
+  color: var(--nfv-black);
+  background: var(--nfv-white);
+}
+.search__input:focus { border-color: var(--nfv-navy); outline: none; box-shadow: 0 0 0 3px var(--nfv-light-blue); }
+.search__status { margin: 0; min-height: 1.4em; font-size: 0.875rem; color: var(--nfv-cool-gray-9); }
+.search__empty { margin: 24px 0 64px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 6px 14px;
+  border: 1px solid var(--nfv-cool-gray-4);
+  border-radius: 999px;
+  background: var(--nfv-white);
+  color: var(--nfv-navy);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--nfv-navy); }
+.chip[aria-pressed="true"] { background: var(--nfv-navy); border-color: var(--nfv-navy); color: var(--nfv-white); }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--nfv-cool-gray-2);
+  color: var(--nfv-black);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.tag:hover { background: var(--nfv-light-blue); }
+
+.filed-under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 56px;
+  padding-top: 18px;
+  border-top: 1px solid var(--nfv-cool-gray-4);
+}
+.filed-under .kicker { margin: 0; }
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--nfv-navy);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
 
 /* ---------- Phones ---------- */
 

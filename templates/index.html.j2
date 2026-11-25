@@ -8,16 +8,127 @@
   {{ ui.headline(site.name ~ ".", "Every issue, newest first.", tag="h1", class_="display") }}
   <p class="lede">{{ site.tagline }}</p>
   <hr class="rule">
-  <ol class="archive" reversed>
+
+  {# Hidden until the script below runs, so visitors without JavaScript just see the full list. #}
+  <form class="search" id="search" role="search" hidden>
+    <label class="search__label" for="search-input">Search every issue</label>
+    <input class="search__input" id="search-input" name="q" type="search" autocomplete="off"
+           placeholder="Try “screenshot” or “lock”">
+    <div class="chips" role="group" aria-label="Filter by category">
+      <button type="button" class="chip" data-tag="" aria-pressed="true">All</button>
+      {% for tag in tags %}
+      <button type="button" class="chip" data-tag="{{ tag.slug }}" aria-pressed="false">{{ tag.label }}</button>
+      {% endfor %}
+    </div>
+    <p class="search__status" id="search-status" role="status"></p>
+  </form>
+
+  <ol class="archive" id="archive" reversed>
     {% for issue in issues %}
-    <li>
-      <a href="{{ issue.filename }}">
+    <li data-slug="{{ issue.slug }}">
+      <a class="archive__link" href="{{ issue.filename }}">
         <span class="archive__meta">Issue {{ issue.number }} · {{ issue.published.strftime("%B %-d, %Y") }}</span>
         <span class="archive__title">{{ issue.title }}</span>
         <span class="archive__summary">{{ issue.summary }}</span>
       </a>
+      {{ ui.tag_list(issue.tags) }}
     </li>
     {% endfor %}
   </ol>
+
+  <p class="search__empty" id="search-empty" hidden>
+    No issues match that yet. Try a different word, or
+    <button type="button" class="link-button" id="search-clear">show every issue</button>.
+  </p>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/json" id="search-index">{{ search_index | safe }}</script>
+<script>
+  // Archive search: filters the issue list by words and by category tag.
+  // Everything runs in the browser from the index above; there's no server.
+  (() => {
+    const form = document.getElementById("search");
+    const input = document.getElementById("search-input");
+    const chips = [...form.querySelectorAll(".chip")];
+    const status = document.getElementById("search-status");
+    const empty = document.getElementById("search-empty");
+    const archive = document.getElementById("archive");
+    const items = new Map([...archive.children].map((li) => [li.dataset.slug, li]));
+    const knownTags = new Set(chips.map((chip) => chip.dataset.tag));
+
+    // Split text into lowercase words without accents, so "contrasena" finds "contraseña".
+    const toWords = (text) =>
+      text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+
+    const entries = JSON.parse(document.getElementById("search-index").textContent).map((entry) => ({
+      slug: entry.slug,
+      tags: entry.tags,
+      words: [...new Set(toWords([entry.title, entry.summary, ...entry.tagLabels, entry.text].join(" ")))],
+    }));
+
+    // Every search term has to start some word in the issue, so "lock" finds "locking"
+    // but "hot" doesn't match the middle of "screenshot".
+    const matchesAll = (entry, terms) =>
+      terms.every((term) => entry.words.some((word) => word.startsWith(term)));
+
+    let activeTag = "";
+
+    // Keep the search in the address bar so a filtered view can be shared or bookmarked.
+    function saveToAddressBar() {
+      const params = new URLSearchParams();
+      if (input.value.trim()) params.set("q", input.value.trim());
+      if (activeTag) params.set("tag", activeTag);
+      const query = params.toString();
+      history.replaceState(null, "", query ? `?${query}` : location.pathname);
+    }
+
+    function update() {
+      const terms = toWords(input.value);
+      let shown = 0;
+      for (const entry of entries) {
+        const visible = (!activeTag || entry.tags.includes(activeTag)) && matchesAll(entry, terms);
+        items.get(entry.slug).hidden = !visible;
+        if (visible) shown += 1;
+      }
+      chips.forEach((chip) => chip.setAttribute("aria-pressed", String(chip.dataset.tag === activeTag)));
+      empty.hidden = shown > 0;
+      const filtering = terms.length > 0 || activeTag !== "";
+      status.textContent = filtering ? `Showing ${shown} of ${entries.length} issues` : "";
+      saveToAddressBar();
+    }
+
+    function setTag(slug) {
+      activeTag = knownTags.has(slug) ? slug : "";
+      update();
+    }
+
+    form.addEventListener("submit", (event) => event.preventDefault());
+    input.addEventListener("input", update);
+    chips.forEach((chip) => chip.addEventListener("click", () => setTag(chip.dataset.tag)));
+
+    // Tag links under each issue filter in place instead of reloading the page.
+    archive.addEventListener("click", (event) => {
+      const link = event.target.closest(".tag");
+      if (!link) return;
+      event.preventDefault();
+      setTag(new URL(link.href).searchParams.get("tag") || "");
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.getElementById("search-clear").addEventListener("click", () => {
+      input.value = "";
+      setTag("");
+      input.focus();
+    });
+
+    // Start from the address bar, so links like index.html?tag=privacy open filtered.
+    const params = new URLSearchParams(location.search);
+    input.value = params.get("q") || "";
+    activeTag = knownTags.has(params.get("tag")) ? params.get("tag") : "";
+    form.hidden = false;
+    update();
+  })();
+</script>
 {% endblock %}
