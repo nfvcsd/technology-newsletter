@@ -7,7 +7,7 @@
 Layout of the output:
 
     site/
-      index.html                  archive of every issue
+      index.html                  archive of every issue, with search and tag filters
       <issue-slug>.html           one page per issue
       media/<issue-slug>/*.gif    each animated demo recorded as a GIF
       email/<issue-slug>.html     email version: open, copy, paste into Gmail
@@ -20,6 +20,7 @@ Layout of the output:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 from dataclasses import dataclass, field
@@ -33,14 +34,29 @@ import yaml
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 from keys import ICON_PATHS, parse_combo, spoken
+from search import page_text
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "site"
 ISSUES_DIR = ROOT / "issues"
 CHEATSHEETS_DIR = ROOT / "cheatsheets"
+TAGS_PATH = ROOT / "tags.yaml"
 
 # Matches data-gif="name" on demos in a rendered issue page.
 GIF_ATTRIBUTE = re.compile(r'data-gif="([a-z0-9-]+)"')
+
+
+@dataclass(frozen=True)
+class Tag:
+    """A category from tags.yaml, such as "Keyboard shortcuts"."""
+
+    slug: str
+    label: str
+
+    @property
+    def archive_url(self) -> str:
+        """The archive page, filtered to this tag."""
+        return f"index.html?tag={self.slug}"
 
 
 @dataclass(frozen=True)
@@ -52,6 +68,7 @@ class Issue:
     title: str
     published: date
     summary: str
+    tags: tuple[Tag, ...]
     cheatsheets: list[str] = field(default_factory=list)
 
     @property
@@ -80,7 +97,25 @@ def read_yaml(path: Path) -> dict[str, Any]:
         return yaml.safe_load(handle)
 
 
-def load_issues() -> list[Issue]:
+def load_tags() -> dict[str, Tag]:
+    """Every tag in tags.yaml, in file order."""
+    return {slug: Tag(slug, entry["label"]) for slug, entry in read_yaml(TAGS_PATH).items()}
+
+
+def resolve_tags(slugs: list[str] | None, known: dict[str, Tag], where: Path) -> tuple[Tag, ...]:
+    """Turn an issue's tag slugs into Tags, failing the build on a missing or unknown slug."""
+    if not slugs:
+        raise SystemExit(f"{where.relative_to(ROOT)} needs at least one tag. Choose from: {', '.join(known)}")
+    unknown = [slug for slug in slugs if slug not in known]
+    if unknown:
+        raise SystemExit(
+            f"{where.relative_to(ROOT)} uses unknown tag(s) {unknown}. "
+            f"Choose from: {', '.join(known)}, or add a new one to tags.yaml."
+        )
+    return tuple(known[slug] for slug in slugs)
+
+
+def load_issues(tags: dict[str, Tag]) -> list[Issue]:
     """All issues, newest first."""
     issues = []
     for meta_path in sorted(ISSUES_DIR.glob("*/issue.yaml")):
@@ -92,10 +127,32 @@ def load_issues() -> list[Issue]:
                 title=meta["title"],
                 published=meta["published"],
                 summary=meta["summary"],
+                tags=resolve_tags(meta.get("tags"), tags, meta_path),
                 cheatsheets=meta.get("cheatsheets", []),
             )
         )
     return sorted(issues, key=lambda issue: issue.number, reverse=True)
+
+
+def search_index_json(issues_with_html: list[tuple[Issue, str]]) -> str:
+    """The archive's search index, ready to embed in a <script> element.
+
+    Each entry holds everything a search should match: title, summary, tag
+    labels, and the readable text of the issue page.
+    """
+    entries = [
+        {
+            "slug": issue.slug,
+            "title": issue.title,
+            "summary": issue.summary,
+            "tags": [tag.slug for tag in issue.tags],
+            "tagLabels": [tag.label for tag in issue.tags],
+            "text": page_text(html),
+        }
+        for issue, html in issues_with_html
+    ]
+    # "</" inside a <script> element could end it early, so escape the slash.
+    return json.dumps(entries, ensure_ascii=False).replace("</", "<\\/")
 
 
 def load_cheatsheets() -> dict[str, dict[str, Any]]:
@@ -155,7 +212,8 @@ def build(skip_images: bool, base_url: str) -> None:
     if not base_url.endswith("/"):
         raise SystemExit("Set base_url in newsletter.yaml (ending in /) so email images can load.")
     env = make_environment(site, base_url)
-    issues = load_issues()
+    tags = load_tags()
+    issues = load_issues(tags)
     cheatsheets = load_cheatsheets()
 
     if OUTPUT_DIR.exists():
@@ -172,6 +230,7 @@ def build(skip_images: bool, base_url: str) -> None:
 
     print("Issues")
     issue_pages = []
+    rendered_issues = []
     for issue in issues:
         missing = set(issue.cheatsheets) - cheatsheets.keys()
         if missing:
@@ -183,6 +242,7 @@ def build(skip_images: bool, base_url: str) -> None:
         page_path = OUTPUT_DIR / issue.filename
         page_html = write_page(env, issue.template, page_path, **context)
         issue_pages.append((issue, page_path))
+        rendered_issues.append((issue, page_html))
 
         if issue.has_email:
             gifs = {name: f"{issue.media_dir}/{name}.gif" for name in GIF_ATTRIBUTE.findall(page_html)}
@@ -191,7 +251,15 @@ def build(skip_images: bool, base_url: str) -> None:
             write_draft_email(
                 email_html, issue, site, urljoin(base_url, issue.filename), email_path.with_suffix(".eml")
             )
-    write_page(env, "index.html.j2", OUTPUT_DIR / "index.html", issues=issues)
+    used_slugs = {tag.slug for issue in issues for tag in issue.tags}
+    write_page(
+        env,
+        "index.html.j2",
+        OUTPUT_DIR / "index.html",
+        issues=issues,
+        tags=[tag for tag in tags.values() if tag.slug in used_slugs],
+        search_index=search_index_json(rendered_issues),
+    )
 
     if skip_images:
         print("Skipping PNG and GIF rendering (--skip-images)")

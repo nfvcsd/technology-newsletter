@@ -41,3 +41,12 @@
 {% macro headline(lead, rest, tag="h2", class_="") -%}
 <{{ tag }} class="nfv-headline {{ class_ }}"><b>{{ lead }}</b> {{ rest }}</{{ tag }}>
 {%- endmacro %}
+
+{#- An issue's category tags, each linking to the archive filtered to that tag. -#}
+{% macro tag_list(tags) -%}
+<ul class="tag-list">
+  {%- for tag in tags %}
+  <li><a class="tag" href="{{ tag.archive_url }}">{{ tag.label }}</a></li>
+  {%- endfor %}
+</ul>
+{%- endmacro %}

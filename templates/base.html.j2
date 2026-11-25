@@ -1,3 +1,4 @@
+{% import "macros.html.j2" as ui %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -25,6 +26,14 @@
 
   <main id="content">
     {% block content %}{% endblock %}
+
+    {# Issue pages end with their category tags, each linking to the filtered archive. #}
+    {% if issue is defined %}
+    <nav class="filed-under" aria-label="Categories for this issue">
+      <span class="kicker">Filed under</span>
+      {{ ui.tag_list(issue.tags) }}
+    </nav>
+    {% endif %}
   </main>
 
   {% block after_main %}{% endblock %}
